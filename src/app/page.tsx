@@ -72,7 +72,7 @@ export default function Home() {
         <div className="card" style={{ flex: '1 1 300px' }}>
           <h3>Select Drug 1</h3>
           {!drug1 ? (
-            <div>
+            <div style={{ position: 'relative' }}>
               <input 
                 className="input" 
                 placeholder="Search drug (e.g. Sildenafil)" 
@@ -83,11 +83,26 @@ export default function Home() {
                 }}
               />
               {results1.length > 0 && (
-                <div style={{ marginTop: '1rem', border: '1px solid var(--border)', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+                <div style={{ 
+                  position: 'absolute', 
+                  top: '100%', 
+                  left: 0, 
+                  right: 0, 
+                  zIndex: 10, 
+                  backgroundColor: 'var(--bg-main)', 
+                  marginTop: '0.5rem', 
+                  border: '1px solid var(--border)', 
+                  borderRadius: '8px', 
+                  maxHeight: '250px', 
+                  overflowY: 'auto',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                }}>
                   {results1.map(d => (
                     <div 
                       key={d.id} 
                       style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                       onClick={() => { setDrug1(d); setQuery1(''); setResults1([]); }}
                     >
                       <strong>{d.generic_name}</strong>
@@ -114,7 +129,7 @@ export default function Home() {
         <div className="card" style={{ flex: '1 1 300px' }}>
           <h3>Select Drug 2</h3>
           {!drug2 ? (
-            <div>
+            <div style={{ position: 'relative' }}>
               <input 
                 className="input" 
                 placeholder="Search drug (e.g. Isosorbide)" 
@@ -125,11 +140,26 @@ export default function Home() {
                 }}
               />
               {results2.length > 0 && (
-                <div style={{ marginTop: '1rem', border: '1px solid var(--border)', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+                <div style={{ 
+                  position: 'absolute', 
+                  top: '100%', 
+                  left: 0, 
+                  right: 0, 
+                  zIndex: 10, 
+                  backgroundColor: 'var(--bg-main)', 
+                  marginTop: '0.5rem', 
+                  border: '1px solid var(--border)', 
+                  borderRadius: '8px', 
+                  maxHeight: '250px', 
+                  overflowY: 'auto',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                }}>
                   {results2.map(d => (
                     <div 
                       key={d.id} 
                       style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                       onClick={() => { setDrug2(d); setQuery2(''); setResults2([]); }}
                     >
                       <strong>{d.generic_name}</strong>
