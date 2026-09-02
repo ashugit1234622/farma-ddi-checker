@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: farma-ddi-checker
+    env: node
+    plan: free # Change this to 'starter' or higher if you need more resources
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Add your Gemini API Key below. Do NOT commit the actual key to git!
+      # You can override this value in the Render dashboard.
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: gemini-2.5-flash

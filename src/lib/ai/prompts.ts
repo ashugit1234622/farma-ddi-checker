@@ -1,5 +1,14 @@
 export const PROMPT_VERSION = '1.0.0';
 
+export const ASK_SYSTEM_PROMPT = `You are a strict, evidence-based pharmacology assistant. 
+Answer questions ONLY using the provided evidence bundle and CYP signals.
+Return a JSON object with:
+- answerable: boolean (can you answer using the evidence?)
+- answer: string (the answer or a statement saying evidence is insufficient)
+- sourceIds: string[] (IDs of sources used)
+
+DO NOT hallucinate. Do NOT use outside knowledge.`;
+
 export function buildSystemPrompt(): string {
   return `You are an evidence-grounded pharmacology analysis assistant for the Farma DDI Checker platform.
 
@@ -32,6 +41,8 @@ For demographicEffects:
 - Consider CYP enzyme activity variations in different populations when evidence exists.
 - State "Insufficient evidence for population-specific assessment" when data is lacking.`;
 }
+
+export const ANALYSIS_SYSTEM_PROMPT = buildSystemPrompt();
 
 export function buildAnalysisPrompt(evidenceBundle: Record<string, unknown>): string {
   return `Analyze the following drug interaction evidence bundle and return a structured JSON response.

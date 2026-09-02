@@ -1,0 +1,202 @@
+[
+  {
+    "_id": "warfarin",
+    "name": "Warfarin",
+    "genericName": "warfarin sodium",
+    "synonyms": ["Coumadin"],
+    "drugClass": ["anticoagulant", "vitamin K antagonist"],
+    "cypEnzymes": { "substrateOf": ["CYP2C9", "CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally, high bioavailability",
+      "proteinBinding": "Highly protein bound (~99%), mainly to albumin",
+      "metabolism": "Hepatic, primarily via CYP2C9 (S-warfarin) and CYP3A4/1A2 (R-warfarin)",
+      "halfLife": "20–60 hours",
+      "excretion": "Renal, mostly as metabolites"
+    },
+    "toxicityProfile": {
+      "hepatic": "low",
+      "renal": "low",
+      "cardiac": "low",
+      "notes": ["Primary risk is bleeding, not organ toxicity in the classic sense"]
+    },
+    "indications": ["Atrial fibrillation stroke prevention", "Venous thromboembolism treatment/prevention", "Mechanical heart valve"],
+    "dataSource": "demo_seed",
+    "isSampleData": true
+  },
+  {
+    "_id": "aspirin",
+    "name": "Aspirin",
+    "genericName": "acetylsalicylic acid",
+    "synonyms": ["ASA"],
+    "drugClass": ["antiplatelet", "NSAID", "salicylate"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Rapidly absorbed orally",
+      "proteinBinding": "Highly protein bound",
+      "metabolism": "Hepatic hydrolysis to salicylic acid",
+      "halfLife": "~15–20 minutes (aspirin); salicylate longer, dose-dependent",
+      "excretion": "Renal"
+    },
+    "toxicityProfile": {
+      "hepatic": "low",
+      "renal": "moderate",
+      "cardiac": "low",
+      "notes": ["GI mucosal irritation and bleeding risk at antiplatelet/analgesic doses"]
+    },
+    "indications": ["Cardiovascular event prevention", "Analgesia", "Antipyresis"],
+    "dataSource": "demo_seed",
+    "isSampleData": true
+  },
+  {
+    "_id": "simvastatin",
+    "name": "Simvastatin",
+    "genericName": "simvastatin",
+    "synonyms": ["Zocor"],
+    "drugClass": ["statin", "HMG-CoA reductase inhibitor"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["OATP1B1"],
+    "pharmacokinetics": {
+      "absorption": "Prodrug, absorbed then hydrolyzed to active form",
+      "proteinBinding": "Highly protein bound (~95%)",
+      "metabolism": "Extensively hepatic via CYP3A4",
+      "halfLife": "~2–3 hours (active metabolites longer)",
+      "excretion": "Primarily biliary/fecal"
+    },
+    "toxicityProfile": {
+      "hepatic": "moderate",
+      "renal": "low",
+      "cardiac": "low",
+      "notes": ["Dose-dependent myopathy risk, rare rhabdomyolysis, increases sharply with CYP3A4 inhibition"]
+    },
+    "indications": ["Hypercholesterolemia", "Cardiovascular risk reduction"],
+    "dataSource": "demo_seed",
+    "isSampleData": true
+  },
+  {
+    "_id": "clarithromycin",
+    "name": "Clarithromycin",
+    "genericName": "clarithromycin",
+    "synonyms": ["Biaxin"],
+    "drugClass": ["macrolide antibiotic"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": ["CYP3A4"], "inducerOf": [] },
+    "transporters": ["P-glycoprotein inhibitor"],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally",
+      "proteinBinding": "Moderate (~65–75%)",
+      "metabolism": "Hepatic via CYP3A4; strong CYP3A4 inhibitor",
+      "halfLife": "~3–7 hours (dose-dependent)",
+      "excretion": "Renal and hepatic"
+    },
+    "toxicityProfile": {
+      "hepatic": "moderate",
+      "renal": "low",
+      "cardiac": "moderate",
+      "notes": ["QT prolongation risk", "Strong CYP3A4 inhibition raises levels of many co-administered CYP3A4 substrates"]
+    },
+    "indications": ["Respiratory tract infections", "H. pylori eradication regimens"],
+    "dataSource": "demo_seed",
+    "isSampleData": true
+  },
+  {
+    "_id": "pravastatin",
+    "name": "Pravastatin",
+    "genericName": "pravastatin sodium",
+    "synonyms": ["Pravachol"],
+    "drugClass": ["statin", "HMG-CoA reductase inhibitor"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["OATP1B1"],
+    "pharmacokinetics": {
+      "absorption": "Variable oral absorption (~17%)",
+      "proteinBinding": "~50%",
+      "metabolism": "Minimal CYP metabolism; not a significant CYP3A4 substrate",
+      "halfLife": "~1.5–3 hours",
+      "excretion": "Renal and biliary"
+    },
+    "toxicityProfile": {
+      "hepatic": "low",
+      "renal": "low",
+      "cardiac": "low",
+      "notes": ["Lower interaction potential than CYP3A4-dependent statins"]
+    },
+    "indications": ["Hypercholesterolemia", "Cardiovascular risk reduction"],
+    "dataSource": "demo_seed",
+    "isSampleData": true
+  },
+  {
+    "_id": "azithromycin",
+    "name": "Azithromycin",
+    "genericName": "azithromycin",
+    "synonyms": ["Zithromax", "Z-Pak"],
+    "drugClass": ["macrolide antibiotic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally",
+      "proteinBinding": "Low to moderate, concentration-dependent",
+      "metabolism": "Minimal hepatic metabolism, negligible CYP3A4 inhibition compared to clarithromycin",
+      "halfLife": "~68 hours (long tissue half-life)",
+      "excretion": "Primarily biliary"
+    },
+    "toxicityProfile": {
+      "hepatic": "low",
+      "renal": "low",
+      "cardiac": "moderate",
+      "notes": ["Some QT prolongation risk, but far less CYP3A4 inhibition than clarithromycin"]
+    },
+    "indications": ["Respiratory tract infections", "Sexually transmitted infections"],
+    "dataSource": "demo_seed",
+    "isSampleData": true
+  },
+  {
+    "_id": "lisinopril",
+    "name": "Lisinopril",
+    "genericName": "lisinopril",
+    "synonyms": ["Prinivil", "Zestril"],
+    "drugClass": ["ACE inhibitor"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "~25% oral bioavailability",
+      "proteinBinding": "Not significantly protein bound",
+      "metabolism": "Not hepatically metabolized",
+      "halfLife": "~12 hours",
+      "excretion": "Renal, unchanged"
+    },
+    "toxicityProfile": {
+      "hepatic": "low",
+      "renal": "moderate",
+      "cardiac": "low",
+      "notes": ["Can reduce aldosterone-mediated potassium excretion"]
+    },
+    "indications": ["Hypertension", "Heart failure", "Post-MI cardioprotection"],
+    "dataSource": "demo_seed",
+    "isSampleData": true
+  },
+  {
+    "_id": "spironolactone",
+    "name": "Spironolactone",
+    "genericName": "spironolactone",
+    "synonyms": ["Aldactone"],
+    "drugClass": ["potassium-sparing diuretic", "aldosterone antagonist"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally",
+      "proteinBinding": "Highly protein bound",
+      "metabolism": "Hepatic to active metabolites (e.g., canrenone)",
+      "halfLife": "~1.4 hours (active metabolite ~9–24 hours)",
+      "excretion": "Renal and biliary"
+    },
+    "toxicityProfile": {
+      "hepatic": "low",
+      "renal": "moderate",
+      "cardiac": "low",
+      "notes": ["Directly promotes potassium retention via aldosterone antagonism"]
+    },
+    "indications": ["Heart failure", "Resistant hypertension", "Edema", "Hyperaldosteronism"],
+    "dataSource": "demo_seed",
+    "isSampleData": true
+  }
+]

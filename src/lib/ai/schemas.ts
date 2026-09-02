@@ -86,3 +86,9 @@ export const QAResponseSchema = z.object({
 });
 
 export type QAResponse = z.infer<typeof QAResponseSchema>;
+
+export const ConstrainedAnswerSchema = z.object({
+  answerable: z.boolean(),
+  answer: z.string(),
+  sourceIds: z.array(z.string()),
+});

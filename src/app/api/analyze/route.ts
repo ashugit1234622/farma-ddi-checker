@@ -1,25 +1,76 @@
-import { NextResponse } from 'next/server';
-import { runDDIAnalysis } from '@/lib/ai/analysis';
-import { buildEvidenceBundle } from '@/lib/engine/ddi-engine';
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { buildEvidenceBundle, DrugNotFoundError } from "../../../lib/ddi/evidenceBundle";
+import { runDDIAnalysis, AIUnavailableError, AIValidationError } from "../../../lib/ai/analysis";
 
-export async function POST(request: Request) {
+const RequestSchema = z.object({
+  drug1Id: z.string().min(1),
+  drug2Id: z.string().min(1),
+  forceRefresh: z.boolean().optional(),
+});
+
+export async function POST(req: NextRequest) {
+  let body: unknown;
   try {
-    const body = await request.json();
-    const { drug1Id, drug2Id } = body;
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+  }
 
-    if (!drug1Id || !drug2Id) {
-      return NextResponse.json({ error: 'Missing drug IDs' }, { status: 400 });
+  const parsed = RequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request.", detail: parsed.error.issues },
+      { status: 400 }
+    );
+  }
+
+  const { drug1Id, drug2Id, forceRefresh } = parsed.data;
+
+  if (drug1Id === drug2Id) {
+    return NextResponse.json({ error: "Select two different drugs." }, { status: 400 });
+  }
+
+  // 1. Build the deterministic evidence bundle (DB + rule engine).
+  let bundle;
+  try {
+    bundle = await buildEvidenceBundle(drug1Id, drug2Id);
+  } catch (err) {
+    if (err instanceof DrugNotFoundError) {
+      return NextResponse.json({ error: err.message }, { status: 404 });
     }
+    return NextResponse.json(
+      { error: "Could not load drug data.", detail: err instanceof Error ? err.message : String(err) },
+      { status: 503 }
+    );
+  }
 
-    // Build evidence bundle using deterministic rule engine
-    const bundle = buildEvidenceBundle(drug1Id, drug2Id);
+  // 2. Run AI analysis over the bundle. If AI fails, still return the
+  //    deterministic bundle so the UI can show the rule-engine result alone.
+  try {
+    const { analysis, fromCache, model } = await runDDIAnalysis(drug1Id, drug2Id, bundle, {
+      forceRefresh,
+    });
 
-    // Run AI analysis
-    const result = await runDDIAnalysis(drug1Id, drug2Id, bundle);
+    return NextResponse.json({
+      analysis,
+      evidenceBundle: bundle,
+      meta: { fromCache, model, aiAvailable: true },
+    });
+  } catch (err) {
+    const aiError =
+      err instanceof AIUnavailableError || err instanceof AIValidationError
+        ? err.message
+        : "The AI analysis service could not be reached.";
 
-    return NextResponse.json({ data: result });
-  } catch (error) {
-    console.error('Error running DDI analysis:', error);
-    return NextResponse.json({ error: 'Failed to analyze interaction' }, { status: 500 });
+    return NextResponse.json(
+      {
+        analysis: null,
+        evidenceBundle: bundle,
+        meta: { fromCache: false, model: null, aiAvailable: false },
+        aiError,
+      },
+      { status: 200 }
+    );
   }
 }

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { DrugRecord } from '@/lib/engine/ddi-engine';
-import { DDIAnalysis } from '@/lib/ai/schemas';
+import { DrugRecord } from "../lib/engine/ddi-engine";
+import { DDIAnalysis } from "../lib/ai/schemas";
 
 export default function Home() {
   const [query1, setQuery1] = useState('');

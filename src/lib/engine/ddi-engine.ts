@@ -1,6 +1,4 @@
 import { getDatabase } from '../db';
-import { DDIAnalysisInput } from '../ai/provider';
-
 export interface DrugRecord {
   id: string;
   generic_name: string;
@@ -85,7 +83,7 @@ export function getSources(sourceIds: string[]) {
   return db.prepare(`SELECT * FROM sources WHERE id IN (${placeholders})`).all(...sourceIds);
 }
 
-export function buildEvidenceBundle(drug1Id: string, drug2Id: string): DDIAnalysisInput {
+export function buildEvidenceBundle(drug1Id: string, drug2Id: string): any {
   const drug1 = getDrugById(drug1Id);
   const drug2 = getDrugById(drug2Id);
   if (!drug1 || !drug2) throw new Error('Drug not found');
@@ -100,10 +98,10 @@ export function buildEvidenceBundle(drug1Id: string, drug2Id: string): DDIAnalys
 
   // Collect all source IDs
   const sourceIdSet = new Set<string>();
-  interactions.forEach((i: Record<string, string>) => {
+  interactions.forEach((i: any) => {
     try { JSON.parse(i.source_ids || '[]').forEach((s: string) => sourceIdSet.add(s)); } catch {}
   });
-  [...drug1Enzymes, ...drug2Enzymes].forEach((e: Record<string, string>) => {
+  [...drug1Enzymes, ...drug2Enzymes].forEach((e: any) => {
     if (e.source_id) sourceIdSet.add(e.source_id);
   });
 
