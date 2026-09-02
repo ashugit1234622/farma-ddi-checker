@@ -25,10 +25,42 @@ export const ADMEAnalysisSchema = z.object({
   excretion: z.string(),
 });
 
+export const ADMEScoresSchema = z.object({
+  drug1: z.object({
+    absorption: z.number(),
+    distribution: z.number(),
+    metabolism: z.number(),
+    excretion: z.number(),
+  }),
+  drug2: z.object({
+    absorption: z.number(),
+    distribution: z.number(),
+    metabolism: z.number(),
+    excretion: z.number(),
+  }),
+});
+
 export const ToxicityAnalysisSchema = z.object({
   overallRisk: z.string(),
   concerns: z.array(z.string()),
   combinedRiskAssessment: z.string(),
+});
+
+export const ToxicityScoresSchema = z.object({
+  drug1: z.object({
+    hepatic: z.number(),
+    renal: z.number(),
+    cardiac: z.number(),
+    neuro: z.number(),
+    hemato: z.number(),
+  }),
+  drug2: z.object({
+    hepatic: z.number(),
+    renal: z.number(),
+    cardiac: z.number(),
+    neuro: z.number(),
+    hemato: z.number(),
+  }),
 });
 
 export const DoseRiskSchema = z.object({
@@ -63,8 +95,10 @@ export const DDIAnalysisSchema = z.object({
   potentialConsequences: z.array(z.string()),
   monitoring: z.array(MonitoringItemSchema),
   admeAnalysis: ADMEAnalysisSchema,
+  admeScores: ADMEScoresSchema,
   pharmacodynamicAnalysis: z.string(),
   toxicityAnalysis: ToxicityAnalysisSchema,
+  toxicityScores: ToxicityScoresSchema,
   doseRisk: DoseRiskSchema,
   demographicEffects: DemographicEffectSchema,
   alternatives: z.array(AlternativeSchema),

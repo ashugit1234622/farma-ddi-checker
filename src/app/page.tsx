@@ -1,40 +1,139 @@
 'use client';
 
-import { useState } from 'react';
-import { DrugRecord } from "../lib/engine/ddi-engine";
+import { useState, useEffect, useRef } from 'react';
 import { DDIAnalysis } from "../lib/ai/schemas";
 
+interface DrugSearchResult {
+  id: string;
+  name: string;
+  genericName: string;
+  drugClass: string[];
+  synonyms: string[];
+  indications: string[];
+}
+
+/* ─── Animated Bar Component ─── */
+function AnimatedBar({ value, className, delay = 0 }: { value: number; className: string; delay?: number }) {
+  const [width, setWidth] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setWidth(value), 100 + delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return (
+    <div className="chart-bar-track">
+      <div ref={ref} className={`chart-bar-fill animated ${className}`} style={{ width: `${width}%` }} />
+    </div>
+  );
+}
+
+/* ─── Toxicity Color Helper ─── */
+function getToxClass(val: number): string {
+  if (val <= 30) return 'toxicity-low';
+  if (val <= 60) return 'toxicity-moderate';
+  return 'toxicity-high';
+}
+
+function getToxColor(val: number): string {
+  if (val <= 30) return 'var(--chart-low)';
+  if (val <= 60) return 'var(--chart-moderate)';
+  return 'var(--chart-high)';
+}
+
+/* ─── ADME Chart ─── */
+function ADMEChart({ report, drug1Name, drug2Name }: { report: DDIAnalysis; drug1Name: string; drug2Name: string }) {
+  const params = ['absorption', 'distribution', 'metabolism', 'excretion'] as const;
+  return (
+    <div className="chart-container slide-up delay-2">
+      <div className="chart-title">⚗️ ADME Comparison</div>
+      {params.map((p, i) => (
+        <div className="chart-row" key={p}>
+          <div className="chart-label" style={{ textTransform: 'capitalize' }}>{p}</div>
+          <div className="chart-bars">
+            <AnimatedBar value={report.admeScores.drug1[p]} className="drug1" delay={i * 150} />
+            <AnimatedBar value={report.admeScores.drug2[p]} className="drug2" delay={i * 150 + 80} />
+          </div>
+          <div className="chart-value" style={{ fontSize: '0.65rem' }}>
+            {report.admeScores.drug1[p]}<br/>{report.admeScores.drug2[p]}
+          </div>
+        </div>
+      ))}
+      <div className="chart-legend">
+        <div className="legend-item"><div className="legend-dot" style={{ background: 'var(--chart-drug1)' }} />{drug1Name}</div>
+        <div className="legend-item"><div className="legend-dot" style={{ background: 'var(--chart-drug2)' }} />{drug2Name}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Toxicity Chart ─── */
+function ToxicityChart({ report, drug1Name, drug2Name }: { report: DDIAnalysis; drug1Name: string; drug2Name: string }) {
+  const params = ['hepatic', 'renal', 'cardiac', 'neuro', 'hemato'] as const;
+  const labels: Record<string, string> = { hepatic: 'Hepatic', renal: 'Renal', cardiac: 'Cardiac', neuro: 'Neuro', hemato: 'Hemato' };
+
+  return (
+    <div className="chart-container slide-up delay-3">
+      <div className="chart-title">☠️ Toxicity Profile</div>
+      {params.map((p, i) => (
+        <div className="chart-row" key={p}>
+          <div className="chart-label">{labels[p]}</div>
+          <div className="chart-bars">
+            <AnimatedBar value={report.toxicityScores.drug1[p]} className={getToxClass(report.toxicityScores.drug1[p])} delay={i * 120} />
+            <AnimatedBar value={report.toxicityScores.drug2[p]} className={getToxClass(report.toxicityScores.drug2[p])} delay={i * 120 + 70} />
+          </div>
+          <div className="chart-value" style={{ fontSize: '0.65rem' }}>
+            {report.toxicityScores.drug1[p]}<br/>{report.toxicityScores.drug2[p]}
+          </div>
+        </div>
+      ))}
+      <div className="chart-legend">
+        <div className="legend-item"><div className="legend-dot" style={{ background: 'var(--chart-drug1)' }} />{drug1Name}</div>
+        <div className="legend-item"><div className="legend-dot" style={{ background: 'var(--chart-drug2)' }} />{drug2Name}</div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem' }}>
+          <div className="legend-item"><div className="legend-dot" style={{ background: 'var(--chart-low)' }} />Low</div>
+          <div className="legend-item"><div className="legend-dot" style={{ background: 'var(--chart-moderate)' }} />Moderate</div>
+          <div className="legend-item"><div className="legend-dot" style={{ background: 'var(--chart-high)' }} />High</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Main Page ─── */
 export default function Home() {
   const [query1, setQuery1] = useState('');
   const [query2, setQuery2] = useState('');
-  
-  const [drug1, setDrug1] = useState<DrugRecord | null>(null);
-  const [drug2, setDrug2] = useState<DrugRecord | null>(null);
-
-  const [results1, setResults1] = useState<DrugRecord[]>([]);
-  const [results2, setResults2] = useState<DrugRecord[]>([]);
-
+  const [drug1, setDrug1] = useState<DrugSearchResult | null>(null);
+  const [drug2, setDrug2] = useState<DrugSearchResult | null>(null);
+  const [results1, setResults1] = useState<DrugSearchResult[]>([]);
+  const [results2, setResults2] = useState<DrugSearchResult[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const [report, setReport] = useState<DDIAnalysis | null>(null);
   const [error, setError] = useState('');
+  const [stepIndex, setStepIndex] = useState(0);
 
-  const searchDrug = async (query: string, setResult: (res: DrugRecord[]) => void) => {
-    if (query.length < 2) {
-      setResult([]);
-      return;
-    }
+  const searchDrug = async (query: string, setResult: (res: DrugSearchResult[]) => void) => {
+    if (query.length < 1) { setResult([]); return; }
     try {
       const res = await fetch(`/api/drugs?q=${encodeURIComponent(query)}`);
       const data = await res.json();
       setResult(data.data || []);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch { /* ignore */ }
   };
+
+  // Stepper animation
+  useEffect(() => {
+    if (!analyzing) { setStepIndex(0); return; }
+    const interval = setInterval(() => {
+      setStepIndex(prev => (prev < 4 ? prev + 1 : prev));
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [analyzing]);
 
   const handleAnalyze = async () => {
     if (!drug1 || !drug2) return;
-    
     setAnalyzing(true);
     setReport(null);
     setError('');
@@ -48,65 +147,87 @@ export default function Home() {
       const json = await res.json();
       if (json.error) {
         setError(json.error);
-      } else {
+      } else if (json.data?.analysis) {
         setReport(json.data.analysis);
+      } else if (json.data?.aiError) {
+        setError(json.data.aiError);
       }
-    } catch (e) {
-      setError('Failed to reach analysis service. Ensure AI provider is correctly configured.');
+    } catch {
+      setError('Failed to reach analysis service.');
     } finally {
       setAnalyzing(false);
     }
   };
 
+  const handleReset = () => {
+    setDrug1(null); setDrug2(null);
+    setQuery1(''); setQuery2('');
+    setResults1([]); setResults2([]);
+    setReport(null); setError('');
+  };
+
+  const isInteraction = report?.overallStatus === 'interaction_detected';
+  const isSafe = report?.overallStatus === 'no_significant_interaction_identified';
+
+  const getSeverityStyle = () => {
+    if (!report) return {};
+    if (report.severity === 'contraindicated' || report.severity === 'major')
+      return { borderColor: 'var(--danger)', background: 'rgba(239, 68, 68, 0.06)' };
+    if (report.severity === 'moderate')
+      return { borderColor: 'var(--warning)', background: 'rgba(245, 158, 11, 0.06)' };
+    return { borderColor: 'var(--success)', background: 'rgba(16, 185, 129, 0.06)' };
+  };
+
+  const steps = [
+    'Resolving drugs & loading evidence',
+    'Analyzing CYP enzyme pathways',
+    'Evaluating ADME & toxicity profiles',
+    'Generating AI-powered report',
+  ];
+
   return (
-    <div style={{ paddingBottom: '4rem' }}>
-      <div style={{ textAlign: 'center', marginBottom: '3rem', paddingTop: '2rem' }}>
-        <h1 style={{ fontSize: '3rem', color: 'var(--accent-primary)', marginBottom: '1rem' }}>AI Pharmacology Analysis</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto' }}>
-          Evaluate drug interactions based on structured pharmacological evidence, ADME characteristics, and clinical data.
+    <div style={{ paddingBottom: '3rem' }}>
+      {/* Hero */}
+      <div style={{ textAlign: 'center', marginBottom: '2.5rem', paddingTop: '1.5rem' }}>
+        <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>💊</div>
+        <h1 style={{ color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+          Drug-Drug Interaction Checker
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '550px', margin: '0 auto' }}>
+          Select two drugs to check for interactions, view ADME & toxicity charts, and get AI-powered clinical analysis.
         </p>
       </div>
 
-      <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        {/* Drug 1 Selection */}
-        <div className="card" style={{ flex: '1 1 300px' }}>
-          <h3>Select Drug 1</h3>
+      {/* Drug Selection */}
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        {/* Drug 1 */}
+        <div className="card" style={{ flex: '1 1 280px', minHeight: '180px' }}>
+          <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 500 }}>Drug 1</h3>
           {!drug1 ? (
             <div style={{ position: 'relative' }}>
-              <input 
-                className="input" 
-                placeholder="Search drug (e.g. Sildenafil)" 
+              <input
+                className="input"
+                placeholder="Search by name, class, or indication..."
                 value={query1}
-                onChange={(e) => {
-                  setQuery1(e.target.value);
-                  searchDrug(e.target.value, setResults1);
-                }}
+                onChange={(e) => { setQuery1(e.target.value); searchDrug(e.target.value, setResults1); }}
               />
               {results1.length > 0 && (
-                <div style={{ 
-                  position: 'absolute', 
-                  top: '100%', 
-                  left: 0, 
-                  right: 0, 
-                  zIndex: 10, 
-                  backgroundColor: 'var(--bg-main)', 
-                  marginTop: '0.5rem', 
-                  border: '1px solid var(--border)', 
-                  borderRadius: '8px', 
-                  maxHeight: '250px', 
-                  overflowY: 'auto',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10,
+                  backgroundColor: 'var(--bg-card)', marginTop: '0.4rem',
+                  border: '1px solid var(--border)', borderRadius: '10px',
+                  maxHeight: '280px', overflowY: 'auto',
+                  boxShadow: '0 12px 28px rgba(0,0,0,0.3)'
                 }}>
                   {results1.map(d => (
-                    <div 
-                      key={d.id} 
-                      style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                      onClick={() => { setDrug1(d); setQuery1(''); setResults1([]); }}
-                    >
-                      <strong>{d.generic_name}</strong>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{d.drug_class}</div>
+                    <div key={d.id} style={{ padding: '0.7rem 1rem', borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                      onClick={() => { setDrug1(d); setQuery1(''); setResults1([]); setReport(null); }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{d.name}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                        {d.drugClass.join(' · ')}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -114,56 +235,53 @@ export default function Home() {
             </div>
           ) : (
             <div>
-              <div style={{ padding: '1rem', backgroundColor: 'var(--bg-hover)', borderRadius: '8px', marginBottom: '1rem' }}>
-                <strong style={{ fontSize: '1.2rem', color: 'var(--accent-primary)' }}>{drug1.generic_name}</strong>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{drug1.drug_class}</div>
+              <div style={{ padding: '0.75rem 1rem', backgroundColor: 'var(--bg-hover)', borderRadius: '10px', marginBottom: '0.75rem', borderLeft: '3px solid var(--chart-drug1)' }}>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--chart-drug1)' }}>{drug1.name}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>{drug1.genericName}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.3rem' }}>{drug1.drugClass.join(' · ')}</div>
               </div>
-              <button className="btn" style={{ backgroundColor: 'var(--bg-hover)', color: 'var(--text-main)', width: '100%' }} onClick={() => setDrug1(null)}>
-                Change Drug
+              <button className="btn btn-outline" style={{ width: '100%', fontSize: '0.85rem', padding: '0.5rem' }} onClick={() => { setDrug1(null); setReport(null); }}>
+                Change
               </button>
             </div>
           )}
         </div>
 
-        {/* Drug 2 Selection */}
-        <div className="card" style={{ flex: '1 1 300px' }}>
-          <h3>Select Drug 2</h3>
+        {/* Interaction Indicator */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', paddingTop: '1.5rem' }}>
+          <div className={`interaction-indicator ${report ? (isInteraction ? 'indicator-danger' : 'indicator-safe') : 'indicator-pending'}`}>
+            {report ? (isInteraction ? '⚠️' : '✅') : '⇄'}
+          </div>
+        </div>
+
+        {/* Drug 2 */}
+        <div className="card" style={{ flex: '1 1 280px', minHeight: '180px' }}>
+          <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 500 }}>Drug 2</h3>
           {!drug2 ? (
             <div style={{ position: 'relative' }}>
-              <input 
-                className="input" 
-                placeholder="Search drug (e.g. Isosorbide)" 
+              <input
+                className="input"
+                placeholder="Search by name, class, or indication..."
                 value={query2}
-                onChange={(e) => {
-                  setQuery2(e.target.value);
-                  searchDrug(e.target.value, setResults2);
-                }}
+                onChange={(e) => { setQuery2(e.target.value); searchDrug(e.target.value, setResults2); }}
               />
               {results2.length > 0 && (
-                <div style={{ 
-                  position: 'absolute', 
-                  top: '100%', 
-                  left: 0, 
-                  right: 0, 
-                  zIndex: 10, 
-                  backgroundColor: 'var(--bg-main)', 
-                  marginTop: '0.5rem', 
-                  border: '1px solid var(--border)', 
-                  borderRadius: '8px', 
-                  maxHeight: '250px', 
-                  overflowY: 'auto',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                <div style={{
+                  position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10,
+                  backgroundColor: 'var(--bg-card)', marginTop: '0.4rem',
+                  border: '1px solid var(--border)', borderRadius: '10px',
+                  maxHeight: '280px', overflowY: 'auto',
+                  boxShadow: '0 12px 28px rgba(0,0,0,0.3)'
                 }}>
                   {results2.map(d => (
-                    <div 
-                      key={d.id} 
-                      style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                      onClick={() => { setDrug2(d); setQuery2(''); setResults2([]); }}
-                    >
-                      <strong>{d.generic_name}</strong>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{d.drug_class}</div>
+                    <div key={d.id} style={{ padding: '0.7rem 1rem', borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--bg-hover)'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                      onClick={() => { setDrug2(d); setQuery2(''); setResults2([]); setReport(null); }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{d.name}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                        {d.drugClass.join(' · ')}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -171,194 +289,200 @@ export default function Home() {
             </div>
           ) : (
             <div>
-              <div style={{ padding: '1rem', backgroundColor: 'var(--bg-hover)', borderRadius: '8px', marginBottom: '1rem' }}>
-                <strong style={{ fontSize: '1.2rem', color: 'var(--accent-primary)' }}>{drug2.generic_name}</strong>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{drug2.drug_class}</div>
+              <div style={{ padding: '0.75rem 1rem', backgroundColor: 'var(--bg-hover)', borderRadius: '10px', marginBottom: '0.75rem', borderLeft: '3px solid var(--chart-drug2)' }}>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--chart-drug2)' }}>{drug2.name}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>{drug2.genericName}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.3rem' }}>{drug2.drugClass.join(' · ')}</div>
               </div>
-              <button className="btn" style={{ backgroundColor: 'var(--bg-hover)', color: 'var(--text-main)', width: '100%' }} onClick={() => setDrug2(null)}>
-                Change Drug
+              <button className="btn btn-outline" style={{ width: '100%', fontSize: '0.85rem', padding: '0.5rem' }} onClick={() => { setDrug2(null); setReport(null); }}>
+                Change
               </button>
             </div>
           )}
         </div>
       </div>
 
+      {/* Check Interaction Button */}
       {drug1 && drug2 && !report && !analyzing && (
-        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-          <button className="btn btn-primary" style={{ fontSize: '1.2rem', padding: '1rem 3rem' }} onClick={handleAnalyze}>
-            Analyze Interaction
+        <div className="fade-in" style={{ textAlign: 'center', marginTop: '1rem', marginBottom: '1rem' }}>
+          <button className="btn btn-primary" style={{ fontSize: '1.05rem', padding: '0.85rem 2.5rem' }} onClick={handleAnalyze}>
+            🔬 Check Interaction
           </button>
         </div>
       )}
 
+      {/* Error */}
       {error && (
-        <div className="card bg-danger status-danger" style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <strong>Error:</strong> {error}
+        <div className="card fade-in" style={{ marginTop: '1.5rem', textAlign: 'center', borderColor: 'var(--danger)', background: 'rgba(239,68,68,0.06)' }}>
+          <strong style={{ color: 'var(--danger)' }}>Error:</strong> <span style={{ color: 'var(--text-muted)' }}>{error}</span>
         </div>
       )}
 
+      {/* Loading Stepper */}
       {analyzing && (
-        <div className="card fade-in" style={{ marginTop: '2rem', maxWidth: '600px', margin: '2rem auto' }}>
-          <h3 style={{ textAlign: 'center', marginBottom: '2rem' }}>Analyzing Pharmacology...</h3>
+        <div className="card fade-in" style={{ marginTop: '1.5rem', maxWidth: '500px', margin: '1.5rem auto' }}>
+          <h3 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1rem' }}>Analyzing Interaction...</h3>
           <div className="stepper">
-            <div className="step active"><div className="spinner"></div> Resolving drugs & fetching evidence</div>
-            <div className="step active"><div className="spinner"></div> Analyzing CYP pathways & transporters</div>
-            <div className="step active"><div className="spinner"></div> Comparing ADME & Toxicity profiles</div>
-            <div className="step active"><div className="spinner"></div> Generating comprehensive AI summary</div>
-          </div>
-        </div>
-      )}
-
-      {report && (
-        <div className="fade-in" style={{ marginTop: '3rem' }}>
-          {/* Executive Summary */}
-          <div className={`card ${report.severity === 'contraindicated' || report.severity === 'major' ? 'bg-danger' : report.severity === 'moderate' ? 'bg-warning' : ''}`} style={{ borderLeft: '4px solid', borderLeftColor: report.severity === 'contraindicated' || report.severity === 'major' ? 'var(--danger)' : report.severity === 'moderate' ? 'var(--warning)' : 'var(--success)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <div>
-                <div style={{ textTransform: 'uppercase', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '1px', opacity: 0.8 }}>AI Assessment</div>
-                <h2 style={{ margin: 0 }}>
-                  {report.severity === 'contraindicated' ? 'CONTRAINDICATED' : 
-                   report.severity === 'major' ? 'MAJOR INTERACTION' : 
-                   report.severity === 'moderate' ? 'MODERATE INTERACTION' : 
-                   'MINOR / NO INTERACTION'}
-                </h2>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Confidence</span>
-                <div style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>{report.confidence}</div>
-              </div>
-            </div>
-            <p style={{ fontSize: '1.1rem', lineHeight: 1.6 }}>{report.executiveSummary}</p>
-          </div>
-
-          {/* Mechanisms */}
-          <div className="report-section">
-            <h3>Interaction Mechanisms</h3>
-            {report.interactionMechanisms.map((m, i) => (
-              <div key={i} className="mechanism-card">
-                <strong style={{ display: 'block', color: 'var(--text-main)', marginBottom: '0.5rem', fontSize: '1.1rem' }}>{m.type}</strong>
-                <p style={{ color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{m.explanation}</p>
-                <div style={{ fontSize: '0.85rem', color: 'var(--accent-primary)' }}>Evidence: {m.evidence}</div>
+            {steps.map((s, i) => (
+              <div key={i} className={`step ${i <= stepIndex ? 'active' : ''}`}>
+                {i < stepIndex ? <span style={{ color: 'var(--success)' }}>✓</span> : i === stepIndex ? <div className="spinner" /> : <span style={{ width: 16 }}>○</span>}
+                {s}
               </div>
             ))}
           </div>
+        </div>
+      )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-            {/* Clinical Significance */}
-            <div className="report-section">
-              <h3>Clinical Significance</h3>
-              <p>{report.clinicalSignificance}</p>
-              
-              <h4 style={{ marginTop: '1.5rem', color: 'var(--text-muted)' }}>Potential Consequences</h4>
-              <ul style={{ paddingLeft: '1.5rem', marginTop: '0.5rem' }}>
-                {report.potentialConsequences.map((c, i) => <li key={i}>{c}</li>)}
-              </ul>
-            </div>
-
-            {/* ADME Analysis */}
-            <div className="report-section">
-              <h3>ADME Analysis</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div><strong style={{ color: 'var(--text-muted)' }}>Absorption:</strong> {report.admeAnalysis.absorption}</div>
-                <div><strong style={{ color: 'var(--text-muted)' }}>Distribution:</strong> {report.admeAnalysis.distribution}</div>
-                <div><strong style={{ color: 'var(--text-muted)' }}>Metabolism:</strong> {report.admeAnalysis.metabolism}</div>
-                <div><strong style={{ color: 'var(--text-muted)' }}>Excretion:</strong> {report.admeAnalysis.excretion}</div>
+      {/* Report */}
+      {report && (
+        <div className="fade-in" style={{ marginTop: '2rem' }}>
+          {/* Status Banner */}
+          <div className="card scale-in" style={{ ...getSeverityStyle(), borderLeft: '4px solid', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div>
+                <div className={`status-badge ${isInteraction ? (report.severity === 'major' || report.severity === 'contraindicated' ? 'status-danger' : 'status-warning') : 'status-safe'}`}>
+                  {report.severity === 'contraindicated' ? '⛔ CONTRAINDICATED' :
+                   report.severity === 'major' ? '🔴 MAJOR INTERACTION' :
+                   report.severity === 'moderate' ? '🟡 MODERATE INTERACTION' :
+                   report.severity === 'minor' ? '🟢 MINOR INTERACTION' : '✅ NO SIGNIFICANT INTERACTION'}
+                </div>
+                <p style={{ fontSize: '1rem', lineHeight: 1.7, marginTop: '0.75rem', color: 'var(--text-main)' }}>{report.executiveSummary}</p>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '1px' }}>Confidence</div>
+                <div style={{ fontWeight: 700, textTransform: 'capitalize', fontSize: '1rem' }}>{report.confidence}</div>
               </div>
             </div>
           </div>
 
-          {/* Monitoring & Toxicity */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-            <div className="report-section">
-              <h3>Monitoring Required</h3>
-              {report.monitoring.length > 0 ? report.monitoring.map((m, i) => (
-                <div key={i} className="monitoring-card">
-                  <strong>{m.parameter}</strong> {m.frequency && <span style={{ color: 'var(--accent-primary)', fontSize: '0.85rem', marginLeft: '0.5rem' }}>({m.frequency})</span>}
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{m.reason}</p>
-                </div>
-              )) : <p>No specific monitoring required.</p>}
-            </div>
-
-            <div className="report-section">
-              <h3>Dose Risk & Management</h3>
-              <div className="card" style={{ backgroundColor: 'var(--bg-main)' }}>
-                {report.doseRisk.doseAdjustmentNeeded && (
-                  <div style={{ color: 'var(--warning)', fontWeight: 'bold', marginBottom: '0.5rem' }}>⚠ Dose Adjustment Required</div>
-                )}
-                <div style={{ marginBottom: '1rem' }}>
-                  <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Dangerous Dose Threshold:</strong>
-                  <div>{report.doseRisk.dangerousDoseThreshold}</div>
-                </div>
-                <div>
-                  <strong style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Co-Administration Guidance:</strong>
-                  <div>{report.doseRisk.safeCoAdminGuidance}</div>
-                </div>
-                {report.doseRisk.adjustmentDetails && (
-                  <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                    {report.doseRisk.adjustmentDetails}
-                  </div>
-                )}
-              </div>
-            </div>
+          {/* Charts Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            <ADMEChart report={report} drug1Name={drug1?.name || 'Drug 1'} drug2Name={drug2?.name || 'Drug 2'} />
+            <ToxicityChart report={report} drug1Name={drug1?.name || 'Drug 1'} drug2Name={drug2?.name || 'Drug 2'} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-            <div className="report-section">
-              <h3>Toxicity Analysis</h3>
-              <div className="card" style={{ backgroundColor: 'var(--bg-main)' }}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Overall Risk</span>
-                  <div style={{ fontWeight: 'bold' }}>{report.toxicityAnalysis.overallRisk}</div>
+          {/* Mechanisms */}
+          {report.interactionMechanisms.length > 0 && (
+            <div className="report-section slide-up delay-1">
+              <h3>⚙️ Interaction Mechanisms</h3>
+              {report.interactionMechanisms.map((m, i) => (
+                <div key={i} className="mechanism-card">
+                  <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>{m.type}</strong>
+                  <p style={{ color: 'var(--text-muted)', margin: '0.4rem 0', fontSize: '0.9rem' }}>{m.explanation}</p>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--accent-primary)' }}>Evidence: {m.evidence}</div>
                 </div>
-                <p style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>{report.toxicityAnalysis.combinedRiskAssessment}</p>
-                <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Specific Concerns:</h4>
-                <ul style={{ paddingLeft: '1.5rem', fontSize: '0.9rem' }}>
-                  {report.toxicityAnalysis.concerns.map((c, i) => <li key={i}>{c}</li>)}
+              ))}
+            </div>
+          )}
+
+          {/* Clinical Significance + ADME Text */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
+            <div className="report-section slide-up delay-2">
+              <h3>📋 Clinical Significance</h3>
+              <p style={{ fontSize: '0.9rem', lineHeight: 1.7 }}>{report.clinicalSignificance}</p>
+              {report.potentialConsequences.length > 0 && (
+                <ul style={{ paddingLeft: '1.25rem', marginTop: '0.75rem', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                  {report.potentialConsequences.map((c, i) => <li key={i} style={{ marginBottom: '0.3rem' }}>{c}</li>)}
                 </ul>
-              </div>
-            </div>
-
-            <div className="report-section">
-              <h3>Demographic Considerations</h3>
-              <div className="card" style={{ backgroundColor: 'var(--bg-main)' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
-                  <div><strong style={{ color: 'var(--text-muted)' }}>Pediatric:</strong> {report.demographicEffects.pediatric}</div>
-                  <div><strong style={{ color: 'var(--text-muted)' }}>Geriatric:</strong> {report.demographicEffects.geriatric}</div>
-                  <div><strong style={{ color: 'var(--text-muted)' }}>Hepatic Impairment:</strong> {report.demographicEffects.hepaticImpairment}</div>
-                  <div><strong style={{ color: 'var(--text-muted)' }}>Renal Impairment:</strong> {report.demographicEffects.renalImpairment}</div>
-                  <div><strong style={{ color: 'var(--text-muted)' }}>Pregnancy / Lactation:</strong> {report.demographicEffects.pregnancyLactation}</div>
-                  <div><strong style={{ color: 'var(--text-muted)' }}>Sex-Specific (M/F):</strong> {report.demographicEffects.maleSpecific} / {report.demographicEffects.femaleSpecific}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Sources and Limitations */}
-          <div className="report-section">
-            <h3 style={{ color: 'var(--text-muted)' }}>Evidence & Limitations</h3>
-            <div className="card" style={{ backgroundColor: 'var(--bg-main)', borderColor: 'var(--border)' }}>
-              <p style={{ fontSize: '0.9rem', marginBottom: '1rem' }}><strong>Evidence Assessment:</strong> {report.evidenceAssessment}</p>
-              
-              <h4 style={{ fontSize: '0.9rem', color: 'var(--warning)', marginTop: '1.5rem' }}>Limitations</h4>
-              <ul style={{ paddingLeft: '1.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-                {report.limitations.map((l, i) => <li key={i}>{l}</li>)}
-              </ul>
-
-              {report.sourceIds.length > 0 && (
-                <>
-                  <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Sources Referenced</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
-                    {report.sourceIds.map((id, i) => (
-                      <div key={i} className="source-item">Source ID: {id}</div>
-                    ))}
-                  </div>
-                </>
               )}
             </div>
+
+            <div className="report-section slide-up delay-3">
+              <h3>🧬 ADME Analysis</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.88rem' }}>
+                <div><strong style={{ color: 'var(--text-dim)' }}>Absorption:</strong> {report.admeAnalysis.absorption}</div>
+                <div><strong style={{ color: 'var(--text-dim)' }}>Distribution:</strong> {report.admeAnalysis.distribution}</div>
+                <div><strong style={{ color: 'var(--text-dim)' }}>Metabolism:</strong> {report.admeAnalysis.metabolism}</div>
+                <div><strong style={{ color: 'var(--text-dim)' }}>Excretion:</strong> {report.admeAnalysis.excretion}</div>
+              </div>
+            </div>
           </div>
 
-          <div style={{ marginTop: '3rem', padding: '1rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-            <strong>Disclaimer:</strong> AI-generated analysis is an evidence-grounded informational summary and does not replace professional clinical judgment. Verify important interaction information against current authoritative sources.
+          {/* Alternatives */}
+          {report.alternatives.length > 0 && (
+            <div className="report-section slide-up delay-4" style={{ marginTop: '1.5rem' }}>
+              <h3>💡 Suggested Alternatives</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                {isInteraction ? 'These drugs may have lower interaction risk:' : 'Other options in the same therapeutic class:'}
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '0.75rem' }}>
+                {report.alternatives.map((alt, i) => (
+                  <div key={i} className="alt-card">
+                    <div className="alt-name">{alt.drugName}</div>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.3rem 0' }}>{alt.rationale}</p>
+                    <span className="alt-risk" style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' }}>
+                      Risk: {alt.interactionRisk}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Monitoring + Dose Risk */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
+            <div className="report-section slide-up delay-3">
+              <h3>📊 Monitoring Required</h3>
+              {report.monitoring.length > 0 ? report.monitoring.map((m, i) => (
+                <div key={i} className="monitoring-card">
+                  <strong>{m.parameter}</strong>
+                  {m.frequency && <span style={{ color: 'var(--accent-primary)', fontSize: '0.8rem', marginLeft: '0.4rem' }}>({m.frequency})</span>}
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{m.reason}</p>
+                </div>
+              )) : <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>No specific monitoring required.</p>}
+            </div>
+
+            <div className="report-section slide-up delay-4">
+              <h3>💊 Dose Risk & Management</h3>
+              <div style={{ background: 'var(--bg-hover)', padding: '1rem', borderRadius: '10px', fontSize: '0.88rem' }}>
+                {report.doseRisk.doseAdjustmentNeeded && (
+                  <div style={{ color: 'var(--warning)', fontWeight: 600, marginBottom: '0.5rem' }}>⚠ Dose Adjustment Required</div>
+                )}
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <strong style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>Dangerous Threshold:</strong>
+                  <div style={{ marginTop: '0.15rem' }}>{report.doseRisk.dangerousDoseThreshold}</div>
+                </div>
+                <div>
+                  <strong style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>Safe Co-Admin Guidance:</strong>
+                  <div style={{ marginTop: '0.15rem' }}>{report.doseRisk.safeCoAdminGuidance}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Demographics */}
+          <div className="report-section slide-up delay-5" style={{ marginTop: '1.5rem' }}>
+            <h3>👥 Demographic Considerations</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+              {[
+                { label: 'Pediatric', val: report.demographicEffects.pediatric },
+                { label: 'Geriatric', val: report.demographicEffects.geriatric },
+                { label: 'Hepatic Impairment', val: report.demographicEffects.hepaticImpairment },
+                { label: 'Renal Impairment', val: report.demographicEffects.renalImpairment },
+                { label: 'Pregnancy/Lactation', val: report.demographicEffects.pregnancyLactation },
+              ].map((item, i) => (
+                <div key={i} style={{ background: 'var(--bg-hover)', padding: '0.65rem 0.85rem', borderRadius: '8px' }}>
+                  <strong style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</strong>
+                  <div style={{ marginTop: '0.2rem', color: 'var(--text-muted)' }}>{item.val}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Evidence + Disclaimer */}
+          <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.12)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            <strong style={{ color: 'var(--accent-primary)' }}>Evidence Assessment:</strong> {report.evidenceAssessment}
+          </div>
+
+          <div style={{ marginTop: '0.75rem', padding: '0.85rem', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.12)', borderRadius: '10px', fontSize: '0.78rem', color: 'var(--text-dim)', textAlign: 'center' }}>
+            ⚕️ <strong>Disclaimer:</strong> AI-generated analysis for informational purposes only. Does not replace professional clinical judgment. Verify against authoritative sources.
+          </div>
+
+          {/* New Analysis Button */}
+          <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+            <button className="btn btn-outline" style={{ fontSize: '0.9rem' }} onClick={handleReset}>
+              🔄 New Analysis
+            </button>
           </div>
         </div>
       )}

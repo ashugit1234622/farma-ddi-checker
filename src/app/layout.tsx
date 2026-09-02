@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Farma DDI Checker | AI-Powered Pharmacology',
-  description: 'Evidence-grounded pharmacology analysis assistant and Drug-Drug Interaction platform.',
+  title: 'Farma DDI Checker | AI-Powered Drug Interaction Analysis',
+  description: 'Check drug-drug interactions with AI-powered analysis, ADME comparison charts, toxicity profiles, and clinical recommendations based on KD Tripathi pharmacology.',
 };
 
 export default function RootLayout({
@@ -16,12 +16,12 @@ export default function RootLayout({
       <body>
         <header className="header">
           <div className="logo">
-            <span>Farma</span> DDI Checker
+            <span>💊 Farma</span> DDI Checker
           </div>
-          <nav>
-            <a href="https://github.com/example/farma-ddi" target="_blank" rel="noreferrer">
-              Documentation
-            </a>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', padding: '0.3rem 0.7rem', background: 'var(--bg-hover)', borderRadius: '6px' }}>
+              Powered by Gemini AI
+            </span>
           </nav>
         </header>
         <main className="container">

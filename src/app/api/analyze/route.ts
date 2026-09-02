@@ -45,17 +45,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 2. Run AI analysis over the bundle. If AI fails, still return the
-  //    deterministic bundle so the UI can show the rule-engine result alone.
+  // 2. Run AI analysis over the bundle.
   try {
     const { analysis, fromCache, model } = await runDDIAnalysis(drug1Id, drug2Id, bundle, {
       forceRefresh,
     });
 
     return NextResponse.json({
-      analysis,
-      evidenceBundle: bundle,
-      meta: { fromCache, model, aiAvailable: true },
+      data: {
+        analysis,
+        evidenceBundle: bundle,
+        meta: { fromCache, model, aiAvailable: true },
+      }
     });
   } catch (err) {
     const aiError =
@@ -65,10 +66,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        analysis: null,
-        evidenceBundle: bundle,
-        meta: { fromCache: false, model: null, aiAvailable: false },
-        aiError,
+        data: {
+          analysis: null,
+          evidenceBundle: bundle,
+          meta: { fromCache: false, model: null, aiAvailable: false },
+          aiError,
+        }
       },
       { status: 200 }
     );

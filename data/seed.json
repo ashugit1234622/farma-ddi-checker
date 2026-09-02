@@ -5,99 +5,75 @@
     "genericName": "warfarin sodium",
     "synonyms": ["Coumadin"],
     "drugClass": ["anticoagulant", "vitamin K antagonist"],
-    "cypEnzymes": { "substrateOf": ["CYP2C9", "CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "cypEnzymes": { "substrateOf": ["CYP2C9", "CYP3A4", "CYP1A2"], "inhibitorOf": [], "inducerOf": [] },
     "transporters": [],
     "pharmacokinetics": {
-      "absorption": "Well absorbed orally, high bioavailability",
-      "proteinBinding": "Highly protein bound (~99%), mainly to albumin",
-      "metabolism": "Hepatic, primarily via CYP2C9 (S-warfarin) and CYP3A4/1A2 (R-warfarin)",
+      "absorption": "Well absorbed orally, high bioavailability (~100%)",
+      "proteinBinding": "~99%, mainly albumin",
+      "metabolism": "Hepatic via CYP2C9 (S-warfarin) and CYP3A4/1A2 (R-warfarin)",
       "halfLife": "20–60 hours",
-      "excretion": "Renal, mostly as metabolites"
+      "excretion": "Renal as metabolites"
     },
-    "toxicityProfile": {
-      "hepatic": "low",
-      "renal": "low",
-      "cardiac": "low",
-      "notes": ["Primary risk is bleeding, not organ toxicity in the classic sense"]
-    },
-    "indications": ["Atrial fibrillation stroke prevention", "Venous thromboembolism treatment/prevention", "Mechanical heart valve"],
-    "dataSource": "demo_seed",
-    "isSampleData": true
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "high", "notes": ["Primary risk is hemorrhage"] },
+    "indications": ["Atrial fibrillation stroke prevention", "DVT/PE treatment", "Mechanical heart valve"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
   },
   {
     "_id": "aspirin",
     "name": "Aspirin",
     "genericName": "acetylsalicylic acid",
-    "synonyms": ["ASA"],
+    "synonyms": ["ASA", "Disprin", "Ecosprin"],
     "drugClass": ["antiplatelet", "NSAID", "salicylate"],
-    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "cypEnzymes": { "substrateOf": ["CYP2C9"], "inhibitorOf": [], "inducerOf": [] },
     "transporters": [],
     "pharmacokinetics": {
       "absorption": "Rapidly absorbed orally",
-      "proteinBinding": "Highly protein bound",
+      "proteinBinding": "80–90% (salicylate)",
       "metabolism": "Hepatic hydrolysis to salicylic acid",
-      "halfLife": "~15–20 minutes (aspirin); salicylate longer, dose-dependent",
+      "halfLife": "15–20 min (aspirin); 2–30 hr (salicylate, dose-dependent)",
       "excretion": "Renal"
     },
-    "toxicityProfile": {
-      "hepatic": "low",
-      "renal": "moderate",
-      "cardiac": "low",
-      "notes": ["GI mucosal irritation and bleeding risk at antiplatelet/analgesic doses"]
-    },
-    "indications": ["Cardiovascular event prevention", "Analgesia", "Antipyresis"],
-    "dataSource": "demo_seed",
-    "isSampleData": true
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "low", "neuro": "low", "hemato": "moderate", "notes": ["GI bleeding risk", "Reye's syndrome in children"] },
+    "indications": ["Cardiovascular event prevention", "Analgesia", "Antipyresis", "Anti-inflammatory"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
   },
   {
     "_id": "simvastatin",
     "name": "Simvastatin",
     "genericName": "simvastatin",
-    "synonyms": ["Zocor"],
+    "synonyms": ["Zocor", "Simcard"],
     "drugClass": ["statin", "HMG-CoA reductase inhibitor"],
     "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
     "transporters": ["OATP1B1"],
     "pharmacokinetics": {
-      "absorption": "Prodrug, absorbed then hydrolyzed to active form",
-      "proteinBinding": "Highly protein bound (~95%)",
+      "absorption": "Prodrug, well absorbed but extensive first-pass (~5% bioavailability)",
+      "proteinBinding": "~95%",
       "metabolism": "Extensively hepatic via CYP3A4",
-      "halfLife": "~2–3 hours (active metabolites longer)",
+      "halfLife": "2–3 hours",
       "excretion": "Primarily biliary/fecal"
     },
-    "toxicityProfile": {
-      "hepatic": "moderate",
-      "renal": "low",
-      "cardiac": "low",
-      "notes": ["Dose-dependent myopathy risk, rare rhabdomyolysis, increases sharply with CYP3A4 inhibition"]
-    },
+    "toxicityProfile": { "hepatic": "moderate", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Dose-dependent myopathy/rhabdomyolysis risk with CYP3A4 inhibitors"] },
     "indications": ["Hypercholesterolemia", "Cardiovascular risk reduction"],
-    "dataSource": "demo_seed",
-    "isSampleData": true
+    "dataSource": "KD_Tripathi", "isSampleData": false
   },
   {
     "_id": "clarithromycin",
     "name": "Clarithromycin",
     "genericName": "clarithromycin",
-    "synonyms": ["Biaxin"],
+    "synonyms": ["Biaxin", "Klaricid"],
     "drugClass": ["macrolide antibiotic"],
     "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": ["CYP3A4"], "inducerOf": [] },
-    "transporters": ["P-glycoprotein inhibitor"],
+    "transporters": ["P-gp inhibitor"],
     "pharmacokinetics": {
-      "absorption": "Well absorbed orally",
-      "proteinBinding": "Moderate (~65–75%)",
+      "absorption": "Well absorbed orally (~50% bioavailability)",
+      "proteinBinding": "65–75%",
       "metabolism": "Hepatic via CYP3A4; strong CYP3A4 inhibitor",
-      "halfLife": "~3–7 hours (dose-dependent)",
+      "halfLife": "3–7 hours",
       "excretion": "Renal and hepatic"
     },
-    "toxicityProfile": {
-      "hepatic": "moderate",
-      "renal": "low",
-      "cardiac": "moderate",
-      "notes": ["QT prolongation risk", "Strong CYP3A4 inhibition raises levels of many co-administered CYP3A4 substrates"]
-    },
-    "indications": ["Respiratory tract infections", "H. pylori eradication regimens"],
-    "dataSource": "demo_seed",
-    "isSampleData": true
+    "toxicityProfile": { "hepatic": "moderate", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["QT prolongation", "Strong CYP3A4 inhibition"] },
+    "indications": ["Respiratory infections", "H. pylori eradication", "MAC prophylaxis"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
   },
   {
     "_id": "pravastatin",
@@ -108,71 +84,53 @@
     "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
     "transporters": ["OATP1B1"],
     "pharmacokinetics": {
-      "absorption": "Variable oral absorption (~17%)",
+      "absorption": "Variable (~17% bioavailability)",
       "proteinBinding": "~50%",
-      "metabolism": "Minimal CYP metabolism; not a significant CYP3A4 substrate",
-      "halfLife": "~1.5–3 hours",
+      "metabolism": "Minimal CYP metabolism",
+      "halfLife": "1.5–3 hours",
       "excretion": "Renal and biliary"
     },
-    "toxicityProfile": {
-      "hepatic": "low",
-      "renal": "low",
-      "cardiac": "low",
-      "notes": ["Lower interaction potential than CYP3A4-dependent statins"]
-    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Lower interaction potential than CYP3A4-dependent statins"] },
     "indications": ["Hypercholesterolemia", "Cardiovascular risk reduction"],
-    "dataSource": "demo_seed",
-    "isSampleData": true
+    "dataSource": "KD_Tripathi", "isSampleData": false
   },
   {
     "_id": "azithromycin",
     "name": "Azithromycin",
     "genericName": "azithromycin",
-    "synonyms": ["Zithromax", "Z-Pak"],
+    "synonyms": ["Zithromax", "Azithral", "Z-Pak"],
     "drugClass": ["macrolide antibiotic"],
     "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
     "transporters": [],
     "pharmacokinetics": {
-      "absorption": "Well absorbed orally",
-      "proteinBinding": "Low to moderate, concentration-dependent",
-      "metabolism": "Minimal hepatic metabolism, negligible CYP3A4 inhibition compared to clarithromycin",
-      "halfLife": "~68 hours (long tissue half-life)",
+      "absorption": "Well absorbed (~37% bioavailability)",
+      "proteinBinding": "7–50% (concentration-dependent)",
+      "metabolism": "Minimal hepatic, negligible CYP inhibition",
+      "halfLife": "~68 hours",
       "excretion": "Primarily biliary"
     },
-    "toxicityProfile": {
-      "hepatic": "low",
-      "renal": "low",
-      "cardiac": "moderate",
-      "notes": ["Some QT prolongation risk, but far less CYP3A4 inhibition than clarithromycin"]
-    },
-    "indications": ["Respiratory tract infections", "Sexually transmitted infections"],
-    "dataSource": "demo_seed",
-    "isSampleData": true
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["Some QT prolongation risk", "Much less CYP interaction than clarithromycin"] },
+    "indications": ["Respiratory infections", "STIs", "Traveler's diarrhea"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
   },
   {
     "_id": "lisinopril",
     "name": "Lisinopril",
     "genericName": "lisinopril",
-    "synonyms": ["Prinivil", "Zestril"],
-    "drugClass": ["ACE inhibitor"],
+    "synonyms": ["Prinivil", "Zestril", "Listril"],
+    "drugClass": ["ACE inhibitor", "antihypertensive"],
     "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
     "transporters": [],
     "pharmacokinetics": {
       "absorption": "~25% oral bioavailability",
-      "proteinBinding": "Not significantly protein bound",
-      "metabolism": "Not hepatically metabolized",
+      "proteinBinding": "Not significantly bound",
+      "metabolism": "Not metabolized",
       "halfLife": "~12 hours",
       "excretion": "Renal, unchanged"
     },
-    "toxicityProfile": {
-      "hepatic": "low",
-      "renal": "moderate",
-      "cardiac": "low",
-      "notes": ["Can reduce aldosterone-mediated potassium excretion"]
-    },
-    "indications": ["Hypertension", "Heart failure", "Post-MI cardioprotection"],
-    "dataSource": "demo_seed",
-    "isSampleData": true
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Hyperkalemia risk", "Angioedema rare"] },
+    "indications": ["Hypertension", "Heart failure", "Diabetic nephropathy"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
   },
   {
     "_id": "spironolactone",
@@ -183,20 +141,1116 @@
     "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
     "transporters": [],
     "pharmacokinetics": {
-      "absorption": "Well absorbed orally",
-      "proteinBinding": "Highly protein bound",
-      "metabolism": "Hepatic to active metabolites (e.g., canrenone)",
-      "halfLife": "~1.4 hours (active metabolite ~9–24 hours)",
+      "absorption": "Well absorbed orally (~65%)",
+      "proteinBinding": ">90%",
+      "metabolism": "Hepatic to active metabolites (canrenone)",
+      "halfLife": "1.4 hr (parent); 9–24 hr (metabolites)",
       "excretion": "Renal and biliary"
     },
-    "toxicityProfile": {
-      "hepatic": "low",
-      "renal": "moderate",
-      "cardiac": "low",
-      "notes": ["Directly promotes potassium retention via aldosterone antagonism"]
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Hyperkalemia risk", "Gynecomastia"] },
+    "indications": ["Heart failure", "Resistant hypertension", "Edema", "PCOS"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "adrenaline",
+    "name": "Adrenaline",
+    "genericName": "epinephrine",
+    "synonyms": ["Epinephrine", "EpiPen"],
+    "drugClass": ["catecholamine", "sympathomimetic", "adrenergic agonist"],
+    "cypEnzymes": { "substrateOf": ["MAO", "COMT"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Not absorbed orally; rapid IM/SC/IV",
+      "proteinBinding": "Low",
+      "metabolism": "Rapidly by MAO and COMT",
+      "halfLife": "2–3 minutes",
+      "excretion": "Renal as metabolites"
     },
-    "indications": ["Heart failure", "Resistant hypertension", "Edema", "Hyperaldosteronism"],
-    "dataSource": "demo_seed",
-    "isSampleData": true
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "high", "neuro": "moderate", "hemato": "low", "notes": ["Arrhythmia risk", "Hypertensive crisis possible"] },
+    "indications": ["Anaphylaxis", "Cardiac arrest", "Severe asthma", "Local anesthetic adjunct"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "atropine",
+    "name": "Atropine",
+    "genericName": "atropine sulfate",
+    "synonyms": ["Atropin"],
+    "drugClass": ["antimuscarinic", "anticholinergic", "parasympatholytic"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally and parenterally",
+      "proteinBinding": "14–22%",
+      "metabolism": "Hepatic hydrolysis",
+      "halfLife": "2–3 hours",
+      "excretion": "Renal (30–50% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "moderate", "hemato": "low", "notes": ["Tachycardia", "CNS excitement at high doses", "Urinary retention"] },
+    "indications": ["Bradycardia", "Organophosphorus poisoning", "Pre-anesthetic", "Mydriasis"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "propranolol",
+    "name": "Propranolol",
+    "genericName": "propranolol hydrochloride",
+    "synonyms": ["Inderal", "Ciplar"],
+    "drugClass": ["beta-blocker", "non-selective beta-blocker", "antihypertensive", "antiarrhythmic"],
+    "cypEnzymes": { "substrateOf": ["CYP2D6", "CYP1A2", "CYP2C19"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally (~26% bioavailability due to first-pass)",
+      "proteinBinding": "~90%",
+      "metabolism": "Extensively hepatic via CYP2D6 and CYP1A2",
+      "halfLife": "3–6 hours",
+      "excretion": "Renal as metabolites"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "moderate", "hemato": "low", "notes": ["Bronchospasm in asthmatics", "Bradycardia", "Masks hypoglycemia"] },
+    "indications": ["Hypertension", "Angina", "Arrhythmias", "Migraine prophylaxis", "Thyrotoxicosis", "Anxiety"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "atenolol",
+    "name": "Atenolol",
+    "genericName": "atenolol",
+    "synonyms": ["Tenormin", "Aten"],
+    "drugClass": ["beta-blocker", "selective beta-1 blocker", "antihypertensive"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "~50% bioavailability",
+      "proteinBinding": "6–16%",
+      "metabolism": "Minimal hepatic metabolism",
+      "halfLife": "6–7 hours",
+      "excretion": "Renal (>90% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["Bradycardia", "Less bronchospasm than non-selective"] },
+    "indications": ["Hypertension", "Angina", "Post-MI"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "salbutamol",
+    "name": "Salbutamol",
+    "genericName": "salbutamol sulfate",
+    "synonyms": ["Albuterol", "Ventolin", "Asthalin"],
+    "drugClass": ["beta-2 agonist", "bronchodilator", "sympathomimetic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Rapid inhalation; oral ~50% bioavailability",
+      "proteinBinding": "Low (~10%)",
+      "metabolism": "Hepatic (sulfate conjugation)",
+      "halfLife": "4–6 hours",
+      "excretion": "Renal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["Tremor", "Tachycardia", "Hypokalemia at high doses"] },
+    "indications": ["Acute bronchospasm", "Asthma", "COPD", "Hyperkalemia (acute)"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "neostigmine",
+    "name": "Neostigmine",
+    "genericName": "neostigmine methylsulfate",
+    "synonyms": ["Prostigmin"],
+    "drugClass": ["anticholinesterase", "cholinergic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Poor oral absorption (~2%); parenteral preferred",
+      "proteinBinding": "15–25%",
+      "metabolism": "Hydrolyzed by cholinesterases",
+      "halfLife": "0.5–2 hours",
+      "excretion": "Renal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "moderate", "hemato": "low", "notes": ["Cholinergic crisis if overdosed", "Bradycardia", "Bronchospasm"] },
+    "indications": ["Myasthenia gravis", "Reversal of NMJ blockade", "Paralytic ileus", "Urinary retention"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "prazosin",
+    "name": "Prazosin",
+    "genericName": "prazosin hydrochloride",
+    "synonyms": ["Minipress"],
+    "drugClass": ["alpha-1 blocker", "antihypertensive"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed (60–70% bioavailability)",
+      "proteinBinding": "92–97%",
+      "metabolism": "Extensively hepatic",
+      "halfLife": "2–3 hours",
+      "excretion": "Biliary and renal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["First-dose postural hypotension", "Dizziness"] },
+    "indications": ["Hypertension", "BPH", "Raynaud's phenomenon", "PTSD nightmares"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "digoxin",
+    "name": "Digoxin",
+    "genericName": "digoxin",
+    "synonyms": ["Lanoxin", "Digitek"],
+    "drugClass": ["cardiac glycoside", "antiarrhythmic", "positive inotrope"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["P-gp substrate"],
+    "pharmacokinetics": {
+      "absorption": "60–80% oral bioavailability",
+      "proteinBinding": "20–25%",
+      "metabolism": "Minimal hepatic metabolism",
+      "halfLife": "36–48 hours",
+      "excretion": "Renal (60–80% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "high", "neuro": "moderate", "hemato": "low", "notes": ["Narrow therapeutic index", "Arrhythmias", "Visual disturbances", "Hypokalemia increases toxicity"] },
+    "indications": ["Heart failure", "Atrial fibrillation rate control"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "amiodarone",
+    "name": "Amiodarone",
+    "genericName": "amiodarone hydrochloride",
+    "synonyms": ["Cordarone", "Pacemake"],
+    "drugClass": ["class III antiarrhythmic"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4", "CYP2C8"], "inhibitorOf": ["CYP3A4", "CYP2D6", "CYP2C9"], "inducerOf": [] },
+    "transporters": ["P-gp inhibitor"],
+    "pharmacokinetics": {
+      "absorption": "Slow, variable (~50% bioavailability)",
+      "proteinBinding": ">96%",
+      "metabolism": "Hepatic via CYP3A4 to desethylamiodarone",
+      "halfLife": "40–55 days",
+      "excretion": "Biliary; minimal renal"
+    },
+    "toxicityProfile": { "hepatic": "high", "renal": "low", "cardiac": "moderate", "neuro": "moderate", "hemato": "low", "notes": ["Pulmonary toxicity", "Thyroid dysfunction", "Corneal microdeposits", "Hepatotoxicity", "Photosensitivity"] },
+    "indications": ["Ventricular arrhythmias", "Atrial fibrillation", "Refractory SVT"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "verapamil",
+    "name": "Verapamil",
+    "genericName": "verapamil hydrochloride",
+    "synonyms": ["Isoptin", "Calan"],
+    "drugClass": ["calcium channel blocker", "class IV antiarrhythmic"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4", "CYP1A2"], "inhibitorOf": ["CYP3A4"], "inducerOf": [] },
+    "transporters": ["P-gp inhibitor"],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed (~20–35% bioavailability due to first-pass)",
+      "proteinBinding": "~90%",
+      "metabolism": "Extensively hepatic via CYP3A4",
+      "halfLife": "6–8 hours",
+      "excretion": "Renal (70% as metabolites)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "high", "neuro": "low", "hemato": "low", "notes": ["Bradycardia", "Heart block", "Constipation", "Negative inotrope"] },
+    "indications": ["SVT", "Hypertension", "Angina", "Migraine prophylaxis"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "amlodipine",
+    "name": "Amlodipine",
+    "genericName": "amlodipine besylate",
+    "synonyms": ["Norvasc", "Amlong", "Amlip"],
+    "drugClass": ["calcium channel blocker", "dihydropyridine", "antihypertensive"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed (~64–90% bioavailability)",
+      "proteinBinding": "93–98%",
+      "metabolism": "Extensively hepatic via CYP3A4",
+      "halfLife": "30–50 hours",
+      "excretion": "Renal (10% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Peripheral edema", "Generally well tolerated"] },
+    "indications": ["Hypertension", "Chronic stable angina", "Vasospastic angina"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "enalapril",
+    "name": "Enalapril",
+    "genericName": "enalapril maleate",
+    "synonyms": ["Vasotec", "Envas"],
+    "drugClass": ["ACE inhibitor", "antihypertensive"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "~60% oral bioavailability (prodrug)",
+      "proteinBinding": "50–60% (enalaprilat)",
+      "metabolism": "Hepatic hydrolysis to enalaprilat (active)",
+      "halfLife": "11 hours (enalaprilat)",
+      "excretion": "Renal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Hyperkalemia", "Dry cough", "Angioedema rare", "Teratogenic"] },
+    "indications": ["Hypertension", "Heart failure", "Asymptomatic LV dysfunction"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "losartan",
+    "name": "Losartan",
+    "genericName": "losartan potassium",
+    "synonyms": ["Cozaar", "Losacar"],
+    "drugClass": ["ARB", "angiotensin II receptor blocker", "antihypertensive"],
+    "cypEnzymes": { "substrateOf": ["CYP2C9", "CYP3A4"], "inhibitorOf": ["CYP2C9"], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed (~33% bioavailability)",
+      "proteinBinding": ">98%",
+      "metabolism": "Hepatic via CYP2C9 to active metabolite E-3174",
+      "halfLife": "2 hr (parent); 6–9 hr (active metabolite)",
+      "excretion": "Biliary (60%) and renal (35%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Hyperkalemia", "Teratogenic", "Better cough profile than ACEi"] },
+    "indications": ["Hypertension", "Diabetic nephropathy", "Heart failure"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "hydrochlorothiazide",
+    "name": "Hydrochlorothiazide",
+    "genericName": "hydrochlorothiazide",
+    "synonyms": ["HCTZ", "Microzide", "Aquazide"],
+    "drugClass": ["thiazide diuretic", "antihypertensive"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "~65–75% oral bioavailability",
+      "proteinBinding": "40–68%",
+      "metabolism": "Not metabolized",
+      "halfLife": "6–15 hours",
+      "excretion": "Renal (>95% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["Hypokalemia", "Hyperuricemia", "Hyperglycemia", "Photosensitivity"] },
+    "indications": ["Hypertension", "Edema", "Heart failure", "Nephrogenic DI"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "furosemide",
+    "name": "Furosemide",
+    "genericName": "furosemide",
+    "synonyms": ["Lasix", "Frusenex"],
+    "drugClass": ["loop diuretic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["OAT substrate"],
+    "pharmacokinetics": {
+      "absorption": "60–70% oral bioavailability",
+      "proteinBinding": "91–99%",
+      "metabolism": "Minimal hepatic (~35% glucuronidation)",
+      "halfLife": "1–2 hours",
+      "excretion": "Renal (60–90%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["Hypokalemia", "Hyponatremia", "Ototoxicity at high IV doses", "Hypovolemia"] },
+    "indications": ["Acute pulmonary edema", "CHF", "Renal failure edema", "Hypertensive crisis"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "diazepam",
+    "name": "Diazepam",
+    "genericName": "diazepam",
+    "synonyms": ["Valium", "Calmpose"],
+    "drugClass": ["benzodiazepine", "anxiolytic", "anticonvulsant", "muscle relaxant"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4", "CYP2C19"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Rapidly and completely absorbed orally",
+      "proteinBinding": "98–99%",
+      "metabolism": "Hepatic via CYP3A4 and CYP2C19 to active metabolites (desmethyldiazepam)",
+      "halfLife": "20–100 hours (including active metabolites)",
+      "excretion": "Renal"
+    },
+    "toxicityProfile": { "hepatic": "moderate", "renal": "low", "cardiac": "low", "neuro": "high", "hemato": "low", "notes": ["CNS depression", "Respiratory depression with opioids", "Dependence risk", "Paradoxical excitement in elderly"] },
+    "indications": ["Anxiety disorders", "Status epilepticus", "Muscle spasm", "Alcohol withdrawal", "Pre-anesthetic"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "phenytoin",
+    "name": "Phenytoin",
+    "genericName": "phenytoin sodium",
+    "synonyms": ["Dilantin", "Eptoin"],
+    "drugClass": ["anticonvulsant", "antiepileptic", "class IB antiarrhythmic"],
+    "cypEnzymes": { "substrateOf": ["CYP2C9", "CYP2C19"], "inhibitorOf": [], "inducerOf": ["CYP3A4", "CYP2C9", "CYP1A2"] },
+    "transporters": ["P-gp inducer"],
+    "pharmacokinetics": {
+      "absorption": "Slow oral absorption (~90% bioavailability)",
+      "proteinBinding": "90–93%",
+      "metabolism": "Hepatic via CYP2C9/2C19; saturable (zero-order at therapeutic doses)",
+      "halfLife": "12–36 hours (dose-dependent)",
+      "excretion": "Renal as metabolites"
+    },
+    "toxicityProfile": { "hepatic": "moderate", "renal": "low", "cardiac": "moderate", "neuro": "high", "hemato": "moderate", "notes": ["Narrow therapeutic index", "Gingival hyperplasia", "Nystagmus/ataxia", "Megaloblastic anemia", "Teratogenic (fetal hydantoin syndrome)"] },
+    "indications": ["Generalized tonic-clonic seizures", "Partial seizures", "Status epilepticus", "Trigeminal neuralgia"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "carbamazepine",
+    "name": "Carbamazepine",
+    "genericName": "carbamazepine",
+    "synonyms": ["Tegretol", "Mazetol"],
+    "drugClass": ["anticonvulsant", "antiepileptic", "mood stabilizer"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": [], "inducerOf": ["CYP3A4", "CYP2C9", "CYP1A2", "CYP2B6"] },
+    "transporters": ["P-gp inducer"],
+    "pharmacokinetics": {
+      "absorption": "Slow, erratic oral absorption (~85% bioavailability)",
+      "proteinBinding": "75–80%",
+      "metabolism": "Hepatic via CYP3A4 to carbamazepine-10,11-epoxide (active); auto-induction",
+      "halfLife": "25–65 hr initially; 12–17 hr after auto-induction",
+      "excretion": "Renal (72% as metabolites)"
+    },
+    "toxicityProfile": { "hepatic": "moderate", "renal": "low", "cardiac": "moderate", "neuro": "moderate", "hemato": "moderate", "notes": ["Aplastic anemia (rare)", "SJS/TEN with HLA-B*1502", "Hyponatremia (SIADH)", "Auto-induction of metabolism"] },
+    "indications": ["Partial seizures", "Trigeminal neuralgia", "Bipolar disorder", "Neuropathic pain"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "valproate",
+    "name": "Valproic Acid",
+    "genericName": "sodium valproate / valproic acid",
+    "synonyms": ["Depakote", "Epilex", "Valparin"],
+    "drugClass": ["anticonvulsant", "antiepileptic", "mood stabilizer"],
+    "cypEnzymes": { "substrateOf": ["CYP2C9", "CYP2C19", "CYP2A6"], "inhibitorOf": ["CYP2C9", "CYP2C19", "CYP3A4"], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Rapidly absorbed orally (~100% bioavailability)",
+      "proteinBinding": "80–95% (saturable, dose-dependent)",
+      "metabolism": "Hepatic via glucuronidation, beta-oxidation, and CYP",
+      "halfLife": "9–16 hours",
+      "excretion": "Renal (<3% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "high", "renal": "low", "cardiac": "low", "neuro": "moderate", "hemato": "moderate", "notes": ["Hepatotoxicity (especially <2 yr)", "Teratogenic (neural tube defects)", "Thrombocytopenia", "Weight gain", "Tremor"] },
+    "indications": ["Generalized seizures", "Absence seizures", "Bipolar disorder", "Migraine prophylaxis"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "levodopa",
+    "name": "Levodopa",
+    "genericName": "levodopa (with carbidopa)",
+    "synonyms": ["Sinemet", "Syndopa", "Madopar"],
+    "drugClass": ["dopamine precursor", "antiparkinson"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["LAT1 substrate"],
+    "pharmacokinetics": {
+      "absorption": "Variable; reduced by high-protein meals",
+      "proteinBinding": "Low",
+      "metabolism": "Peripheral decarboxylation (reduced by carbidopa); then to dopamine in brain",
+      "halfLife": "1–3 hours",
+      "excretion": "Renal as metabolites"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "moderate", "hemato": "low", "notes": ["Dyskinesias with long-term use", "On-off phenomenon", "Nausea/vomiting", "Orthostatic hypotension", "Psychosis at high doses"] },
+    "indications": ["Parkinson's disease"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "haloperidol",
+    "name": "Haloperidol",
+    "genericName": "haloperidol",
+    "synonyms": ["Haldol", "Serenace"],
+    "drugClass": ["typical antipsychotic", "butyrophenone", "dopamine D2 antagonist"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4", "CYP2D6"], "inhibitorOf": ["CYP2D6"], "inducerOf": [] },
+    "transporters": ["P-gp substrate"],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally (~60–70% bioavailability)",
+      "proteinBinding": "~92%",
+      "metabolism": "Hepatic via CYP3A4 and CYP2D6",
+      "halfLife": "12–36 hours",
+      "excretion": "Renal and biliary"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "high", "hemato": "low", "notes": ["Extrapyramidal symptoms (EPS)", "Tardive dyskinesia", "QT prolongation", "NMS rare", "Hyperprolactinemia"] },
+    "indications": ["Schizophrenia", "Acute psychosis", "Tourette's syndrome", "Severe agitation"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "fluoxetine",
+    "name": "Fluoxetine",
+    "genericName": "fluoxetine hydrochloride",
+    "synonyms": ["Prozac", "Fludac"],
+    "drugClass": ["SSRI", "antidepressant"],
+    "cypEnzymes": { "substrateOf": ["CYP2D6", "CYP2C9"], "inhibitorOf": ["CYP2D6", "CYP2C19", "CYP3A4"], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally (~72% bioavailability)",
+      "proteinBinding": "94.5%",
+      "metabolism": "Hepatic via CYP2D6 to norfluoxetine (active)",
+      "halfLife": "1–3 days (parent); 4–16 days (norfluoxetine)",
+      "excretion": "Renal (80%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "moderate", "hemato": "low", "notes": ["Serotonin syndrome with MAOIs/serotonergics", "Sexual dysfunction", "Long washout period needed", "GI disturbances"] },
+    "indications": ["Major depression", "OCD", "Bulimia nervosa", "Panic disorder", "PMDD"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "morphine",
+    "name": "Morphine",
+    "genericName": "morphine sulfate",
+    "synonyms": ["MS Contin", "Roxanol"],
+    "drugClass": ["opioid analgesic", "mu-receptor agonist"],
+    "cypEnzymes": { "substrateOf": ["CYP2D6"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["P-gp substrate"],
+    "pharmacokinetics": {
+      "absorption": "Variable oral (~25% bioavailability due to first-pass)",
+      "proteinBinding": "20–35%",
+      "metabolism": "Hepatic glucuronidation to M3G and M6G (active)",
+      "halfLife": "2–3 hours",
+      "excretion": "Renal (90%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "low", "neuro": "high", "hemato": "low", "notes": ["Respiratory depression", "Physical dependence", "Constipation", "Miosis", "M6G accumulates in renal failure"] },
+    "indications": ["Severe pain", "MI pain", "Acute pulmonary edema", "Cancer pain"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "tramadol",
+    "name": "Tramadol",
+    "genericName": "tramadol hydrochloride",
+    "synonyms": ["Ultram", "Contramal"],
+    "drugClass": ["opioid analgesic", "atypical opioid", "SNRI-like"],
+    "cypEnzymes": { "substrateOf": ["CYP2D6", "CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "~75% oral bioavailability",
+      "proteinBinding": "~20%",
+      "metabolism": "Hepatic via CYP2D6 to O-desmethyltramadol (active, M1)",
+      "halfLife": "5–7 hours",
+      "excretion": "Renal (90%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "moderate", "hemato": "low", "notes": ["Seizure risk (lowers threshold)", "Serotonin syndrome risk with SSRIs", "Lower respiratory depression than morphine", "Dependence potential"] },
+    "indications": ["Moderate to severe pain"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "amoxicillin",
+    "name": "Amoxicillin",
+    "genericName": "amoxicillin",
+    "synonyms": ["Amoxil", "Mox", "Novamox"],
+    "drugClass": ["penicillin", "aminopenicillin", "beta-lactam antibiotic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed (~90% bioavailability)",
+      "proteinBinding": "~20%",
+      "metabolism": "Minimal hepatic (~30% metabolized)",
+      "halfLife": "1–1.5 hours",
+      "excretion": "Renal (60–70% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Allergic reactions", "Diarrhea", "Maculopapular rash with EBV", "Very safe profile"] },
+    "indications": ["URTI", "UTI", "H. pylori eradication", "Dental infections", "Otitis media"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "ciprofloxacin",
+    "name": "Ciprofloxacin",
+    "genericName": "ciprofloxacin hydrochloride",
+    "synonyms": ["Cipro", "Ciplox"],
+    "drugClass": ["fluoroquinolone", "antibiotic"],
+    "cypEnzymes": { "substrateOf": ["CYP1A2"], "inhibitorOf": ["CYP1A2"], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed (~70% bioavailability)",
+      "proteinBinding": "20–40%",
+      "metabolism": "Partially hepatic; CYP1A2 inhibitor",
+      "halfLife": "4–6 hours",
+      "excretion": "Renal (45% unchanged) and fecal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "moderate", "hemato": "low", "notes": ["QT prolongation", "Tendon rupture risk", "CNS effects (seizures, insomnia)", "Chelation with cations"] },
+    "indications": ["UTI", "Respiratory infections", "GI infections", "Bone/joint infections", "Anthrax"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "metronidazole",
+    "name": "Metronidazole",
+    "genericName": "metronidazole",
+    "synonyms": ["Flagyl", "Metrogyl"],
+    "drugClass": ["nitroimidazole", "antiprotozoal", "antibiotic"],
+    "cypEnzymes": { "substrateOf": ["CYP2C9"], "inhibitorOf": ["CYP2C9"], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally (~100% bioavailability)",
+      "proteinBinding": "< 20%",
+      "metabolism": "Hepatic (oxidation and glucuronidation)",
+      "halfLife": "6–8 hours",
+      "excretion": "Renal (60–80%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "moderate", "hemato": "low", "notes": ["Disulfiram-like reaction with alcohol", "Metallic taste", "Peripheral neuropathy with prolonged use", "Seizures at high doses"] },
+    "indications": ["Amoebiasis", "Giardiasis", "Anaerobic infections", "H. pylori eradication", "C. difficile"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "rifampicin",
+    "name": "Rifampicin",
+    "genericName": "rifampicin (rifampin)",
+    "synonyms": ["Rifadin", "R-Cin"],
+    "drugClass": ["antitubercular", "rifamycin antibiotic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": ["CYP3A4", "CYP2C9", "CYP2C19", "CYP1A2", "CYP2B6"] },
+    "transporters": ["P-gp inducer"],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally (90–95% bioavailability)",
+      "proteinBinding": "80%",
+      "metabolism": "Hepatic deacetylation; POTENT enzyme inducer",
+      "halfLife": "2–5 hours",
+      "excretion": "Biliary (60–65%) and renal"
+    },
+    "toxicityProfile": { "hepatic": "high", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "moderate", "notes": ["Hepatotoxicity", "Orange discoloration of body fluids", "Most potent CYP inducer known", "Reduces efficacy of oral contraceptives, warfarin, etc."] },
+    "indications": ["Tuberculosis", "Leprosy", "Meningococcal prophylaxis", "Infective endocarditis"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "isoniazid",
+    "name": "Isoniazid",
+    "genericName": "isoniazid (INH)",
+    "synonyms": ["INH", "Isokin"],
+    "drugClass": ["antitubercular"],
+    "cypEnzymes": { "substrateOf": ["NAT2"], "inhibitorOf": ["CYP2C19", "CYP3A4", "CYP2D6"], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Rapidly absorbed (~90% bioavailability)",
+      "proteinBinding": "Very low (<10%)",
+      "metabolism": "Hepatic N-acetylation (fast vs slow acetylators via NAT2)",
+      "halfLife": "1–4 hours (acetylator-dependent)",
+      "excretion": "Renal (>75%)"
+    },
+    "toxicityProfile": { "hepatic": "high", "renal": "low", "cardiac": "low", "neuro": "moderate", "hemato": "low", "notes": ["Hepatotoxicity (especially with rifampicin)", "Peripheral neuropathy (give pyridoxine)", "Lupus-like syndrome", "Inhibits MAO weakly"] },
+    "indications": ["Tuberculosis (first-line)", "Latent TB prophylaxis"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "ketoconazole",
+    "name": "Ketoconazole",
+    "genericName": "ketoconazole",
+    "synonyms": ["Nizoral", "Ketozol"],
+    "drugClass": ["azole antifungal", "imidazole"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": ["CYP3A4", "CYP2C9", "CYP2D6"], "inducerOf": [] },
+    "transporters": ["P-gp inhibitor"],
+    "pharmacokinetics": {
+      "absorption": "Requires acidic pH; ~75% bioavailability",
+      "proteinBinding": "84–99%",
+      "metabolism": "Extensively hepatic via CYP3A4",
+      "halfLife": "2–8 hours",
+      "excretion": "Biliary (major) and renal"
+    },
+    "toxicityProfile": { "hepatic": "high", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["Hepatotoxicity (FDA black box)", "Potent CYP3A4 inhibitor", "Endocrine effects (anti-androgenic)", "QT prolongation"] },
+    "indications": ["Systemic fungal infections", "Cushing's syndrome (off-label)"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "fluconazole",
+    "name": "Fluconazole",
+    "genericName": "fluconazole",
+    "synonyms": ["Diflucan", "Forcan"],
+    "drugClass": ["azole antifungal", "triazole"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": ["CYP2C9", "CYP2C19", "CYP3A4"], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Excellent oral bioavailability (>90%)",
+      "proteinBinding": "11–12%",
+      "metabolism": "Minimal hepatic",
+      "halfLife": "~30 hours",
+      "excretion": "Renal (80% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "moderate", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["Hepatotoxicity (rare)", "QT prolongation at high doses", "Better safety than ketoconazole"] },
+    "indications": ["Candidiasis (oral, vaginal, systemic)", "Cryptococcal meningitis", "Prophylaxis in immunocompromised"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "doxycycline",
+    "name": "Doxycycline",
+    "genericName": "doxycycline hyclate",
+    "synonyms": ["Vibramycin", "Doxy-1"],
+    "drugClass": ["tetracycline antibiotic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed (~90–100% bioavailability)",
+      "proteinBinding": "82–93%",
+      "metabolism": "Minimal; not dependent on renal function",
+      "halfLife": "12–25 hours",
+      "excretion": "Fecal (major) and renal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Photosensitivity", "Esophageal ulceration", "Teeth discoloration in children", "GI disturbance"] },
+    "indications": ["Respiratory infections", "Malaria prophylaxis", "Acne", "Lyme disease", "STIs", "Cholera"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "metformin",
+    "name": "Metformin",
+    "genericName": "metformin hydrochloride",
+    "synonyms": ["Glucophage", "Glycomet"],
+    "drugClass": ["biguanide", "antidiabetic", "oral hypoglycemic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["OCT1 substrate", "OCT2 substrate", "MATE1 substrate"],
+    "pharmacokinetics": {
+      "absorption": "50–60% oral bioavailability",
+      "proteinBinding": "Negligible",
+      "metabolism": "Not metabolized",
+      "halfLife": "4–9 hours",
+      "excretion": "Renal (100% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Lactic acidosis (rare, with renal impairment)", "GI side effects", "Vitamin B12 deficiency with long-term use", "No hypoglycemia as monotherapy"] },
+    "indications": ["Type 2 diabetes (first-line)", "PCOS", "Pre-diabetes"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "glibenclamide",
+    "name": "Glibenclamide",
+    "genericName": "glibenclamide (glyburide)",
+    "synonyms": ["Daonil", "Glyburide", "Micronase"],
+    "drugClass": ["sulfonylurea", "antidiabetic", "oral hypoglycemic"],
+    "cypEnzymes": { "substrateOf": ["CYP2C9", "CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally",
+      "proteinBinding": ">99%",
+      "metabolism": "Hepatic via CYP2C9",
+      "halfLife": "10 hours",
+      "excretion": "Biliary (50%) and renal (50%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Hypoglycemia (especially in elderly/renal impairment)", "Weight gain", "Longest-acting sulfonylurea"] },
+    "indications": ["Type 2 diabetes"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "levothyroxine",
+    "name": "Levothyroxine",
+    "genericName": "levothyroxine sodium",
+    "synonyms": ["Synthroid", "Eltroxin", "Thyronorm"],
+    "drugClass": ["thyroid hormone", "T4 replacement"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": ["CYP3A4"] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "40–80% oral bioavailability (fasting; reduced by food/antacids)",
+      "proteinBinding": ">99% (TBG, albumin, transthyretin)",
+      "metabolism": "Deiodination to T3 in peripheral tissues",
+      "halfLife": "6–7 days",
+      "excretion": "Renal and fecal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["Tachycardia/arrhythmias if overreplaced", "Osteoporosis with chronic excess", "Many drug absorption interactions"] },
+    "indications": ["Hypothyroidism", "Myxedema coma", "TSH suppression (thyroid cancer)"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "prednisolone",
+    "name": "Prednisolone",
+    "genericName": "prednisolone",
+    "synonyms": ["Omnacortil", "Wysolone"],
+    "drugClass": ["corticosteroid", "glucocorticoid", "anti-inflammatory"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["P-gp substrate"],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally (~80% bioavailability)",
+      "proteinBinding": "70–90%",
+      "metabolism": "Hepatic (CYP3A4)",
+      "halfLife": "2–4 hours (biological half-life 12–36 hr)",
+      "excretion": "Renal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "moderate", "hemato": "low", "notes": ["Cushing's syndrome", "Hyperglycemia", "Osteoporosis", "Immunosuppression", "GI ulceration", "Adrenal suppression"] },
+    "indications": ["Inflammatory conditions", "Autoimmune diseases", "Asthma exacerbation", "Allergic reactions"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "dexamethasone",
+    "name": "Dexamethasone",
+    "genericName": "dexamethasone",
+    "synonyms": ["Decadron", "Dexona"],
+    "drugClass": ["corticosteroid", "glucocorticoid"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": [], "inducerOf": ["CYP3A4", "CYP2C9"] },
+    "transporters": ["P-gp substrate"],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally (~80% bioavailability)",
+      "proteinBinding": "~70%",
+      "metabolism": "Hepatic via CYP3A4",
+      "halfLife": "4–5 hours (biological 36–54 hr)",
+      "excretion": "Renal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "moderate", "hemato": "low", "notes": ["Most potent glucocorticoid", "Severe adrenal suppression", "Hyperglycemia", "Psychosis at high doses"] },
+    "indications": ["Cerebral edema", "Severe inflammation", "Antiemetic (chemo)", "COVID-19 (hospitalized)", "Preterm labor"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "omeprazole",
+    "name": "Omeprazole",
+    "genericName": "omeprazole",
+    "synonyms": ["Prilosec", "Omez"],
+    "drugClass": ["proton pump inhibitor", "PPI"],
+    "cypEnzymes": { "substrateOf": ["CYP2C19", "CYP3A4"], "inhibitorOf": ["CYP2C19"], "inducerOf": ["CYP1A2"] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Delayed-release capsule; acid-labile",
+      "proteinBinding": "~95%",
+      "metabolism": "Hepatic via CYP2C19 (major) and CYP3A4",
+      "halfLife": "0.5–1 hour (but effect lasts 24 hr)",
+      "excretion": "Renal (80%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Hypomagnesemia with long-term use", "Vitamin B12 deficiency", "Increased fracture risk", "C. difficile risk", "Reduces clopidogrel activation via CYP2C19"] },
+    "indications": ["GERD", "Peptic ulcer", "H. pylori eradication", "Zollinger-Ellison syndrome"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "ranitidine",
+    "name": "Ranitidine",
+    "genericName": "ranitidine hydrochloride",
+    "synonyms": ["Zantac", "Rantac"],
+    "drugClass": ["H2 blocker", "histamine H2 antagonist"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["OCT2 substrate"],
+    "pharmacokinetics": {
+      "absorption": "~50% oral bioavailability",
+      "proteinBinding": "15%",
+      "metabolism": "Hepatic (minimal)",
+      "halfLife": "2–3 hours",
+      "excretion": "Renal (70% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Very safe profile", "Withdrawn from many markets due to NDMA contamination concern", "No anti-androgenic effects unlike cimetidine"] },
+    "indications": ["Peptic ulcer", "GERD", "Stress ulcer prophylaxis"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "metoclopramide",
+    "name": "Metoclopramide",
+    "genericName": "metoclopramide hydrochloride",
+    "synonyms": ["Reglan", "Perinorm"],
+    "drugClass": ["prokinetic", "antiemetic", "dopamine D2 antagonist"],
+    "cypEnzymes": { "substrateOf": ["CYP2D6"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Rapidly absorbed (~80% bioavailability)",
+      "proteinBinding": "~30%",
+      "metabolism": "Hepatic via CYP2D6",
+      "halfLife": "5–6 hours",
+      "excretion": "Renal (85%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "high", "hemato": "low", "notes": ["EPS (especially in young women)", "Tardive dyskinesia with chronic use", "Hyperprolactinemia", "FDA black box for tardive dyskinesia"] },
+    "indications": ["Gastroparesis", "GERD", "Antiemetic (chemo-induced)", "Post-operative nausea"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "ondansetron",
+    "name": "Ondansetron",
+    "genericName": "ondansetron hydrochloride",
+    "synonyms": ["Zofran", "Emeset"],
+    "drugClass": ["5-HT3 antagonist", "antiemetic"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4", "CYP1A2", "CYP2D6"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed (~60% bioavailability)",
+      "proteinBinding": "70–76%",
+      "metabolism": "Extensively hepatic via CYP3A4, CYP1A2, CYP2D6",
+      "halfLife": "3–6 hours",
+      "excretion": "Renal (5% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["QT prolongation (dose-dependent)", "Headache", "Constipation"] },
+    "indications": ["Chemotherapy-induced nausea", "Post-operative nausea", "Radiation-induced nausea"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "ibuprofen",
+    "name": "Ibuprofen",
+    "genericName": "ibuprofen",
+    "synonyms": ["Advil", "Brufen", "Motrin"],
+    "drugClass": ["NSAID", "propionic acid derivative", "analgesic", "anti-inflammatory"],
+    "cypEnzymes": { "substrateOf": ["CYP2C9"], "inhibitorOf": ["CYP2C9"], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Rapidly absorbed (~80% bioavailability)",
+      "proteinBinding": ">99%",
+      "metabolism": "Hepatic via CYP2C9",
+      "halfLife": "2–4 hours",
+      "excretion": "Renal (90% as metabolites)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "moderate", "neuro": "low", "hemato": "moderate", "notes": ["GI bleeding/ulceration", "Renal impairment", "Cardiovascular risk with chronic use", "Platelet inhibition (reversible)"] },
+    "indications": ["Pain", "Fever", "Inflammation", "Dysmenorrhea", "Rheumatoid arthritis", "PDA closure (neonatal)"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "diclofenac",
+    "name": "Diclofenac",
+    "genericName": "diclofenac sodium",
+    "synonyms": ["Voltaren", "Voveran"],
+    "drugClass": ["NSAID", "acetic acid derivative", "analgesic"],
+    "cypEnzymes": { "substrateOf": ["CYP2C9"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Rapidly absorbed (~55% bioavailability due to first-pass)",
+      "proteinBinding": ">99%",
+      "metabolism": "Hepatic via CYP2C9 and glucuronidation",
+      "halfLife": "1–2 hours",
+      "excretion": "Renal (65%) and biliary (35%)"
+    },
+    "toxicityProfile": { "hepatic": "moderate", "renal": "moderate", "cardiac": "moderate", "neuro": "low", "hemato": "moderate", "notes": ["GI ulceration/bleeding", "Hepatotoxicity (monitor LFTs)", "Cardiovascular risk", "Renal impairment"] },
+    "indications": ["Musculoskeletal pain", "Rheumatoid arthritis", "Osteoarthritis", "Post-operative pain", "Renal colic"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "paracetamol",
+    "name": "Paracetamol",
+    "genericName": "paracetamol (acetaminophen)",
+    "synonyms": ["Tylenol", "Crocin", "Dolo", "Calpol"],
+    "drugClass": ["analgesic", "antipyretic"],
+    "cypEnzymes": { "substrateOf": ["CYP2E1", "CYP1A2", "CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Rapidly absorbed (~90% bioavailability)",
+      "proteinBinding": "10–25%",
+      "metabolism": "Hepatic glucuronidation/sulfation (95%); CYP2E1 to NAPQI (toxic, 5%)",
+      "halfLife": "1–4 hours",
+      "excretion": "Renal (90%)"
+    },
+    "toxicityProfile": { "hepatic": "high", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Hepatotoxicity in overdose (NAPQI accumulation)", "N-acetylcysteine is antidote", "Safe at therapeutic doses", "No anti-inflammatory effect"] },
+    "indications": ["Pain", "Fever", "Osteoarthritis"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "celecoxib",
+    "name": "Celecoxib",
+    "genericName": "celecoxib",
+    "synonyms": ["Celebrex", "Zycel"],
+    "drugClass": ["NSAID", "COX-2 selective inhibitor"],
+    "cypEnzymes": { "substrateOf": ["CYP2C9"], "inhibitorOf": ["CYP2D6"], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed",
+      "proteinBinding": "~97%",
+      "metabolism": "Hepatic via CYP2C9",
+      "halfLife": "11 hours",
+      "excretion": "Fecal (57%) and renal (27%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "moderate", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["Less GI toxicity than non-selective NSAIDs", "Cardiovascular risk (class effect)", "Sulfonamide allergy cross-reactivity"] },
+    "indications": ["Osteoarthritis", "Rheumatoid arthritis", "Familial adenomatous polyposis"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "chlorpheniramine",
+    "name": "Chlorpheniramine",
+    "genericName": "chlorpheniramine maleate",
+    "synonyms": ["CPM", "Piriton", "Chlor-Trimeton"],
+    "drugClass": ["first-generation antihistamine", "H1 blocker"],
+    "cypEnzymes": { "substrateOf": ["CYP2D6", "CYP3A4"], "inhibitorOf": ["CYP2D6"], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally",
+      "proteinBinding": "69–72%",
+      "metabolism": "Hepatic via CYP2D6 and CYP3A4",
+      "halfLife": "12–43 hours",
+      "excretion": "Renal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "moderate", "hemato": "low", "notes": ["Sedation", "Anticholinergic effects", "Not recommended in elderly"] },
+    "indications": ["Allergic rhinitis", "Urticaria", "Common cold symptoms"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "cetirizine",
+    "name": "Cetirizine",
+    "genericName": "cetirizine hydrochloride",
+    "synonyms": ["Zyrtec", "Cetzine", "Alerid"],
+    "drugClass": ["second-generation antihistamine", "H1 blocker"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["P-gp substrate"],
+    "pharmacokinetics": {
+      "absorption": "Rapidly absorbed (~70% bioavailability)",
+      "proteinBinding": "93%",
+      "metabolism": "Minimal hepatic metabolism",
+      "halfLife": "6.5–10 hours",
+      "excretion": "Renal (70% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Minimal sedation compared to first-gen", "Very safe profile", "No significant CYP interactions"] },
+    "indications": ["Allergic rhinitis", "Chronic urticaria"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "methotrexate",
+    "name": "Methotrexate",
+    "genericName": "methotrexate",
+    "synonyms": ["MTX", "Trexall", "Folitrax"],
+    "drugClass": ["antimetabolite", "DMARD", "immunosuppressant", "antineoplastic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["OATP substrate", "OAT substrate", "MRP substrate"],
+    "pharmacokinetics": {
+      "absorption": "Variable oral bioavailability (dose-dependent, ~60%)",
+      "proteinBinding": "~50%",
+      "metabolism": "Intracellular polyglutamation; some hepatic metabolism",
+      "halfLife": "3–10 hours (terminal: 8–15 hours)",
+      "excretion": "Renal (80–100%)"
+    },
+    "toxicityProfile": { "hepatic": "high", "renal": "high", "cardiac": "low", "neuro": "moderate", "hemato": "high", "notes": ["Myelosuppression", "Hepatic fibrosis/cirrhosis", "Nephrotoxicity", "Pulmonary toxicity", "Mucositis", "Teratogenic", "Leucovorin rescue for high doses"] },
+    "indications": ["Rheumatoid arthritis", "Psoriasis", "ALL", "Choriocarcinoma", "Ectopic pregnancy"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "tamoxifen",
+    "name": "Tamoxifen",
+    "genericName": "tamoxifen citrate",
+    "synonyms": ["Nolvadex", "Tamodex"],
+    "drugClass": ["SERM", "selective estrogen receptor modulator", "antineoplastic"],
+    "cypEnzymes": { "substrateOf": ["CYP2D6", "CYP3A4"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally",
+      "proteinBinding": ">99%",
+      "metabolism": "Hepatic via CYP2D6 to endoxifen (active) and CYP3A4 to N-desmethyltamoxifen",
+      "halfLife": "5–7 days",
+      "excretion": "Fecal (primarily)"
+    },
+    "toxicityProfile": { "hepatic": "moderate", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "moderate", "notes": ["Endometrial cancer risk", "DVT/PE risk", "Hot flashes", "CYP2D6 inhibitors reduce efficacy (avoid fluoxetine, paroxetine)"] },
+    "indications": ["Breast cancer (ER+)", "DCIS", "Breast cancer prevention"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "sildenafil",
+    "name": "Sildenafil",
+    "genericName": "sildenafil citrate",
+    "synonyms": ["Viagra", "Revatio"],
+    "drugClass": ["PDE-5 inhibitor"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4", "CYP2C9"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Rapidly absorbed (~40% bioavailability)",
+      "proteinBinding": "~96%",
+      "metabolism": "Hepatic via CYP3A4 (major) and CYP2C9",
+      "halfLife": "3–5 hours",
+      "excretion": "Fecal (80%) and renal (13%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["CONTRAINDICATED with nitrates (severe hypotension)", "Visual disturbances", "Priapism rare", "Headache/flushing"] },
+    "indications": ["Erectile dysfunction", "Pulmonary arterial hypertension"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "theophylline",
+    "name": "Theophylline",
+    "genericName": "theophylline",
+    "synonyms": ["Theo-Dur", "Deriphyllin"],
+    "drugClass": ["methylxanthine", "bronchodilator"],
+    "cypEnzymes": { "substrateOf": ["CYP1A2", "CYP2E1"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally",
+      "proteinBinding": "~40%",
+      "metabolism": "Hepatic via CYP1A2 (major); saturable kinetics",
+      "halfLife": "3–13 hours (variable; affected by smoking, CHF, liver disease)",
+      "excretion": "Renal (10% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "high", "neuro": "high", "hemato": "low", "notes": ["Narrow therapeutic index (10–20 mcg/mL)", "Seizures", "Arrhythmias", "Nausea/vomiting", "Many drug interactions via CYP1A2"] },
+    "indications": ["Asthma", "COPD", "Neonatal apnea"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "lithium",
+    "name": "Lithium",
+    "genericName": "lithium carbonate",
+    "synonyms": ["Eskalith", "Licab", "Lithobid"],
+    "drugClass": ["mood stabilizer"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Completely absorbed orally",
+      "proteinBinding": "Not protein bound",
+      "metabolism": "Not metabolized",
+      "halfLife": "18–24 hours",
+      "excretion": "Renal (95% unchanged); reabsorbed with sodium"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "high", "cardiac": "moderate", "neuro": "high", "hemato": "low", "notes": ["Narrow therapeutic index (0.6–1.2 mEq/L)", "Nephrogenic DI", "Hypothyroidism", "Tremor", "Teratogenic (Ebstein anomaly)", "Toxicity increased by dehydration/NSAIDs/diuretics"] },
+    "indications": ["Bipolar disorder (mania/maintenance)", "Treatment-resistant depression (augmentation)"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "heparin",
+    "name": "Heparin",
+    "genericName": "heparin sodium (UFH)",
+    "synonyms": ["UFH", "Unfractionated heparin"],
+    "drugClass": ["anticoagulant", "antithrombotic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Not absorbed orally; IV/SC only",
+      "proteinBinding": "Extensive (to plasma proteins, PF4)",
+      "metabolism": "Hepatic (reticuloendothelial system)",
+      "halfLife": "1–2 hours (dose-dependent)",
+      "excretion": "Renal (partially)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "high", "notes": ["Hemorrhage", "HIT (heparin-induced thrombocytopenia)", "Osteoporosis with long-term use", "Protamine is antidote"] },
+    "indications": ["DVT/PE treatment", "ACS", "Cardiac surgery anticoagulation", "DIC"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "clopidogrel",
+    "name": "Clopidogrel",
+    "genericName": "clopidogrel bisulfate",
+    "synonyms": ["Plavix", "Clopilet"],
+    "drugClass": ["antiplatelet", "P2Y12 inhibitor", "thienopyridine"],
+    "cypEnzymes": { "substrateOf": ["CYP2C19", "CYP3A4", "CYP1A2"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "~50% absorbed (prodrug)",
+      "proteinBinding": "98%",
+      "metabolism": "Hepatic; requires CYP2C19 activation to active thiol metabolite",
+      "halfLife": "~6 hours (parent); active metabolite ~30 min",
+      "excretion": "Renal (50%) and fecal (46%)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "moderate", "notes": ["Bleeding risk", "TTP (rare)", "CYP2C19 poor metabolizers have reduced efficacy", "Omeprazole interaction via CYP2C19"] },
+    "indications": ["ACS", "Post-PCI", "Stroke prevention", "Peripheral artery disease"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "insulin",
+    "name": "Insulin",
+    "genericName": "insulin (various)",
+    "synonyms": ["Humulin", "Novolin", "Lantus", "Actrapid"],
+    "drugClass": ["hormone", "antidiabetic", "insulin"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "SC injection; not orally absorbed",
+      "proteinBinding": "Low",
+      "metabolism": "Hepatic and renal degradation by insulinase",
+      "halfLife": "4–6 minutes (circulating); duration varies by formulation",
+      "excretion": "Renal (degraded)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "low", "neuro": "low", "hemato": "low", "notes": ["Hypoglycemia (major risk)", "Lipodystrophy at injection site", "Weight gain", "Hypokalemia"] },
+    "indications": ["Type 1 diabetes", "Type 2 diabetes (when oral agents fail)", "DKA", "Hyperkalemia"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "cyclophosphamide",
+    "name": "Cyclophosphamide",
+    "genericName": "cyclophosphamide",
+    "synonyms": ["Cytoxan", "Endoxan"],
+    "drugClass": ["alkylating agent", "antineoplastic", "immunosuppressant"],
+    "cypEnzymes": { "substrateOf": ["CYP2B6", "CYP3A4", "CYP2C9"], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": [],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed orally (~75% bioavailability)",
+      "proteinBinding": "~20%",
+      "metabolism": "Hepatic (prodrug); CYP2B6/3A4 to 4-hydroxycyclophosphamide (active)",
+      "halfLife": "4–6 hours",
+      "excretion": "Renal (10–20% unchanged)"
+    },
+    "toxicityProfile": { "hepatic": "moderate", "renal": "moderate", "cardiac": "moderate", "neuro": "low", "hemato": "high", "notes": ["Myelosuppression", "Hemorrhagic cystitis (give mesna)", "Secondary malignancy", "Infertility", "SIADH"] },
+    "indications": ["Lymphoma", "Leukemia", "Breast cancer", "Lupus nephritis", "Nephrotic syndrome"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "cisplatin",
+    "name": "Cisplatin",
+    "genericName": "cisplatin",
+    "synonyms": ["Platinol"],
+    "drugClass": ["platinum compound", "alkylating-like antineoplastic"],
+    "cypEnzymes": { "substrateOf": [], "inhibitorOf": [], "inducerOf": [] },
+    "transporters": ["OCT2 substrate"],
+    "pharmacokinetics": {
+      "absorption": "IV only",
+      "proteinBinding": ">90% (irreversibly to plasma proteins)",
+      "metabolism": "Non-enzymatic aquation and protein binding",
+      "halfLife": "20–30 minutes (initial); terminal >5 days",
+      "excretion": "Renal (15–50% in 24 hr)"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "high", "cardiac": "low", "neuro": "high", "hemato": "moderate", "notes": ["Nephrotoxicity (dose-limiting; aggressive hydration needed)", "Ototoxicity (irreversible)", "Severe emetogenicity", "Peripheral neuropathy", "Hypomagnesemia"] },
+    "indications": ["Testicular cancer", "Ovarian cancer", "Head and neck cancer", "Lung cancer", "Bladder cancer"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
+  },
+  {
+    "_id": "diltiazem",
+    "name": "Diltiazem",
+    "genericName": "diltiazem hydrochloride",
+    "synonyms": ["Cardizem", "Herbesser"],
+    "drugClass": ["calcium channel blocker", "benzothiazepine"],
+    "cypEnzymes": { "substrateOf": ["CYP3A4"], "inhibitorOf": ["CYP3A4"], "inducerOf": [] },
+    "transporters": ["P-gp inhibitor"],
+    "pharmacokinetics": {
+      "absorption": "Well absorbed (~40% bioavailability due to first-pass)",
+      "proteinBinding": "70–80%",
+      "metabolism": "Extensively hepatic via CYP3A4",
+      "halfLife": "3–5 hours",
+      "excretion": "Renal (35%) and fecal"
+    },
+    "toxicityProfile": { "hepatic": "low", "renal": "low", "cardiac": "moderate", "neuro": "low", "hemato": "low", "notes": ["Bradycardia", "AV block (avoid with beta-blockers)", "Constipation", "CYP3A4 inhibitor — raises statin levels"] },
+    "indications": ["Angina", "Hypertension", "SVT", "Atrial fibrillation rate control"],
+    "dataSource": "KD_Tripathi", "isSampleData": false
   }
 ]
