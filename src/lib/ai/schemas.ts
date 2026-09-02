@@ -42,7 +42,7 @@ export const ADMEScoresSchema = z.object({
 
 export const ToxicityAnalysisSchema = z.object({
   overallRisk: z.string(),
-  concerns: z.array(z.string()),
+  concerns: z.array(z.string()).catch([]),
   combinedRiskAssessment: z.string(),
 });
 
@@ -90,10 +90,10 @@ export const DDIAnalysisSchema = z.object({
   severity: z.enum(['minor', 'moderate', 'major', 'contraindicated', 'unknown']),
   confidence: z.enum(['high', 'moderate', 'low', 'insufficient']),
   executiveSummary: z.string(),
-  interactionMechanisms: z.array(InteractionMechanismSchema),
+  interactionMechanisms: z.array(InteractionMechanismSchema).catch([]),
   clinicalSignificance: z.string(),
-  potentialConsequences: z.array(z.string()),
-  monitoring: z.array(MonitoringItemSchema),
+  potentialConsequences: z.array(z.string()).catch([]),
+  monitoring: z.array(MonitoringItemSchema).catch([]),
   admeAnalysis: ADMEAnalysisSchema,
   admeScores: ADMEScoresSchema,
   pharmacodynamicAnalysis: z.string(),
@@ -101,10 +101,10 @@ export const DDIAnalysisSchema = z.object({
   toxicityScores: ToxicityScoresSchema,
   doseRisk: DoseRiskSchema,
   demographicEffects: DemographicEffectSchema,
-  alternatives: z.array(AlternativeSchema),
+  alternatives: z.array(AlternativeSchema).catch([]),
   evidenceAssessment: z.string(),
-  limitations: z.array(z.string()),
-  sourceIds: z.array(z.string()),
+  limitations: z.array(z.string()).catch([]),
+  sourceIds: z.array(z.string()).catch([]),
 });
 
 export type DDIAnalysis = z.infer<typeof DDIAnalysisSchema>;
