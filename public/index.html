@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farma DDI Checker — Oncology Pharmacology Platform</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>FARMA DDI</span>
+      <span class="brand-badge">AI Platform</span>
+    </div>
+    <div style="font-size: 0.9rem; color: var(--text-muted);">
+      Verified Pharmacology & Interaction Analysis
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>AI-Powered Oncology Interaction Analysis</h1>
+      <p>Evaluate Drug-Drug Interactions using verified database facts, ADME profiling, enzyme kinetics, and evidence-grounded AI synthesis with a focus on cancer treatments.</p>
+      <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; display: inline-block;">
+        <span style="color: var(--accent-blue); font-weight: 600; margin-right: 0.5rem;">Supported Oncology & Pharmacology Demo Drugs:</span>
+        <span style="color: var(--text-secondary); font-size: 0.95rem;">Paclitaxel, Doxorubicin, Imatinib, Methotrexate, Simvastatin, Amiodarone, Warfarin, Fluconazole, Clopidogrel, Omeprazole, Ibuprofen, Lithium, Penicillin, Sildenafil, Isosorbide Mononitrate</span>
+      </div>
+    </section>
+
+    <!-- Drug Selection Columns -->
+    <div class="selection-grid">
+      <!-- Drug 1 -->
+      <div class="card" id="card-drug1" style="position: relative; overflow: visible;">
+        <div class="card-title">Select Drug 1</div>
+        <div id="search-container-1" style="position: relative;">
+          <input type="text" id="input-drug1" class="search-input" placeholder="Type drug name (e.g. Sildenafil)..." autocomplete="off">
+          <div id="dropdown-drug1" class="results-dropdown" style="display: none;"></div>
+        </div>
+        <div id="selected-container-1" style="display: none;">
+          <div class="selected-drug-card">
+            <div>
+              <strong id="selected-name-1" style="font-size: 1.1rem; color: var(--accent-blue);"></strong>
+              <div id="selected-class-1" style="font-size: 0.85rem; color: var(--text-secondary);"></div>
+            </div>
+            <button class="btn btn-secondary" onclick="clearDrug(1)">Change</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drug 2 -->
+      <div class="card" id="card-drug2" style="position: relative; overflow: visible;">
+        <div class="card-title">Select Drug 2</div>
+        <div id="search-container-2" style="position: relative;">
+          <input type="text" id="input-drug2" class="search-input" placeholder="Type drug name (e.g. Isosorbide)..." autocomplete="off">
+          <div id="dropdown-drug2" class="results-dropdown" style="display: none;"></div>
+        </div>
+        <div id="selected-container-2" style="display: none;">
+          <div class="selected-drug-card">
+            <div>
+              <strong id="selected-name-2" style="font-size: 1.1rem; color: var(--accent-blue);"></strong>
+              <div id="selected-class-2" style="font-size: 0.85rem; color: var(--text-secondary);"></div>
+            </div>
+            <button class="btn btn-secondary" onclick="clearDrug(2)">Change</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analyze Button Container -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <button id="btn-analyze" class="btn btn-primary" style="display: none; font-size: 1.15rem;" onclick="runAnalysis()">
+        Analyze Drug Interaction
+      </button>
+    </div>
+
+    <!-- Stepper Animation Box -->
+    <div id="stepper-box" class="stepper-box" style="display: none;">
+      <h3 style="text-align: center; font-size: 1.25rem;">Analyzing Pharmacology...</h3>
+      <div class="step-list">
+        <div class="step-item" id="step-1"><div class="spinner"></div> Resolving drugs & database records</div>
+        <div class="step-item" id="step-2"><div class="spinner"></div> Checking CYP enzymes & transporter pathways</div>
+        <div class="step-item" id="step-3"><div class="spinner"></div> Comparing ADME & Toxicity profiles</div>
+        <div class="step-item" id="step-4"><div class="spinner"></div> Evaluating clinical evidence & dosage thresholds</div>
+        <div class="step-item" id="step-5"><div class="spinner"></div> Generating evidence-grounded report</div>
+      </div>
+    </div>
+
+    <!-- Error Box -->
+    <div id="error-box" class="card" style="display: none; border-color: #ef4444; background: rgba(239,68,68,0.1); color: #f87171; margin-top: 2rem;">
+      <strong>Error:</strong> <span id="error-text"></span>
+    </div>
+
+    <!-- Full Report Output -->
+    <div id="report-wrapper" class="report-wrapper" style="display: none;">
+
+      <!-- Executive Summary -->
+      <div class="card" id="exec-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <span id="badge-severity" class="executive-badge"></span>
+            <h2 id="exec-title" style="font-size: 1.75rem; margin-top: 0.25rem;"></h2>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Confidence Level</span>
+            <div id="confidence-value" style="font-weight: 800; font-size: 1.1rem; text-transform: capitalize;"></div>
+          </div>
+        </div>
+        <p id="exec-summary" style="font-size: 1.1rem; margin-top: 1rem; color: var(--text-primary); line-height: 1.7;"></p>
+      </div>
+
+      <!-- Mechanisms & Clinical Significance -->
+      <div class="report-grid">
+        <div class="card">
+          <div class="section-header">Interaction Mechanisms</div>
+          <div id="mechanisms-list"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">Clinical Significance & Consequences</div>
+          <p id="clinical-significance" style="margin-bottom: 1rem; color: var(--text-secondary);"></p>
+          <strong style="font-size: 0.9rem; color: var(--text-primary);">Potential Consequences:</strong>
+          <ul id="consequences-list" style="padding-left: 1.25rem; margin-top: 0.5rem; color: var(--text-secondary);"></ul>
+        </div>
+      </div>
+
+      <!-- ADME & Toxicity -->
+      <div class="report-grid">
+        <div class="card">
+          <div class="section-header">ADME Pharmacokinetics</div>
+          <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
+            <div><strong style="color: var(--text-muted);">Absorption:</strong> <span id="adme-absorption"></span></div>
+            <div><strong style="color: var(--text-muted);">Distribution:</strong> <span id="adme-distribution"></span></div>
+            <div><strong style="color: var(--text-muted);">Metabolism:</strong> <span id="adme-metabolism"></span></div>
+            <div><strong style="color: var(--text-muted);">Excretion:</strong> <span id="adme-excretion"></span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">Toxicity Risk Profile</div>
+          <div style="margin-bottom: 0.75rem;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Overall Risk:</span>
+            <strong id="toxicity-risk" style="margin-left: 0.5rem;"></strong>
+          </div>
+          <p id="toxicity-assessment" style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1rem;"></p>
+          <strong style="font-size: 0.9rem; color: var(--text-primary);">Concerns:</strong>
+          <ul id="toxicity-concerns" style="padding-left: 1.25rem; margin-top: 0.5rem; margin-bottom: 1rem; color: var(--text-secondary);"></ul>
+          
+          <div style="margin-top: 1.5rem; height: 250px;">
+            <canvas id="toxicityChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dose Risk & Demographic Considerations -->
+      <div class="report-grid">
+        <div class="card">
+          <div class="section-header">Dose Risk & Guidance</div>
+          <div style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.95rem;">
+            <div><strong style="color: var(--text-muted);">Dangerous Threshold:</strong> <span id="dose-threshold"></span></div>
+            <div><strong style="color: var(--text-muted);">Co-Administration Guidance:</strong> <span id="dose-guidance"></span></div>
+            <div><strong style="color: var(--text-muted);">Dose Adjustment:</strong> <span id="dose-adjustment"></span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">Demographic & Population Effects</div>
+          <div style="display: flex; flex-direction: column; gap: 0.65rem; font-size: 0.9rem; color: var(--text-secondary);">
+            <div><strong style="color: var(--text-muted);">Pediatric:</strong> <span id="demo-pediatric"></span></div>
+            <div><strong style="color: var(--text-muted);">Geriatric:</strong> <span id="demo-geriatric"></span></div>
+            <div><strong style="color: var(--text-muted);">Hepatic Impairment:</strong> <span id="demo-hepatic"></span></div>
+            <div><strong style="color: var(--text-muted);">Renal Impairment:</strong> <span id="demo-renal"></span></div>
+            <div><strong style="color: var(--text-muted);">Pregnancy/Lactation:</strong> <span id="demo-pregnancy"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Disclaimer Footer -->
+      <div class="disclaimer-box">
+        <strong>Medical Disclaimer:</strong> AI-generated pharmacology analysis is an evidence-grounded informational summary and does not replace professional clinical judgment.
+      </div>
+
+      <!-- AI Chatbox for Interaction Analysis -->
+      <div class="card" style="margin-top: 2rem;">
+        <div class="section-header">Chat about this Interaction</div>
+        <div id="chat-history" style="min-height: 150px; max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.95rem; color: var(--text-secondary);">
+          <div><em>Ask the AI pharmacology assistant a question about this specific drug combination...</em></div>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="chat-input" class="search-input" placeholder="e.g. Can this interaction cause cardiac arrest?">
+          <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
