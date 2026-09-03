@@ -53,21 +53,22 @@ export class GeminiProvider implements AIProvider {
   private ai: GoogleGenAI;
   readonly modelId: string;
   private envVarName: string;
+  private modelName: string;
 
-  constructor(envVarName: string = "GEMINI_API_KEY") {
+  constructor(envVarName: string = "GEMINI_API_KEY", modelName: string = "gemini-2.5-flash") {
     this.envVarName = envVarName;
+    this.modelName = modelName;
     const apiKey = process.env[envVarName];
     if (!apiKey) {
       throw new Error(`${envVarName} is not set.`);
     }
     this.ai = new GoogleGenAI({ apiKey });
-    // Use gemini-2.5-flash (with the retry system handling any 503 spikes)
-    this.modelId = `gemini-2.5-flash (${envVarName})`;
+    this.modelId = `${modelName} (${envVarName})`;
   }
 
   async complete(system: string, user: string): Promise<string> {
     const response = await this.ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: this.modelName,
       contents: user,
       config: {
         systemInstruction: system,
@@ -156,16 +157,16 @@ export function getAIProvider(): AIProvider {
     }
     */
     
-    // Primary Gemini
+    // Primary Gemini (uses 2.5-flash by default)
     try {
-      availableProviders.push(new GeminiProvider("GEMINI_API_KEY"));
+      availableProviders.push(new GeminiProvider("GEMINI_API_KEY", "gemini-2.5-flash"));
     } catch (e) {
       console.warn("Primary GeminiProvider skipped:", e instanceof Error ? e.message : String(e));
     }
 
-    // Secondary Gemini
+    // Secondary Gemini (uses 3.5-flash since 2.5-flash is restricted for new keys)
     try {
-      availableProviders.push(new GeminiProvider("GEMINI_API_KEY_SECONDARY"));
+      availableProviders.push(new GeminiProvider("GEMINI_API_KEY_SECONDARY", "gemini-3.5-flash"));
     } catch (e) {
       console.warn("Secondary GeminiProvider skipped:", e instanceof Error ? e.message : String(e));
     }
