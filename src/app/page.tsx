@@ -508,6 +508,8 @@ export default function Home() {
 
   const handleReset = () => { setDrug1(null); setDrug2(null); setReport(null); setError(''); setDoseMode('normal'); };
 
+  const handlePrint = () => window.print();
+
   // Quick-Swap alternative into Drug2
   const handleSwap = async (altName: string) => {
     try {
@@ -550,7 +552,7 @@ export default function Home() {
     <div style={{ paddingBottom: '4rem' }}>
       {/* Hero */}
       <div style={{ textAlign: 'center', marginBottom: '2.5rem', paddingTop: '1.5rem' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}><Pill className="icon" size={20} /></div>
+        <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}><Pill size={48} style={{ color: 'var(--accent-primary)', filter: 'drop-shadow(0 0 12px var(--accent-glow))' }} /></div>
         <h1 style={{ color: 'var(--text-main)', marginBottom: '0.5rem' }}>Drug-Drug Interaction Checker</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '550px', margin: '0 auto' }}>
           Select two drugs to check for interactions, view ADME & toxicity charts, and get AI-powered clinical analysis.
@@ -568,7 +570,7 @@ export default function Home() {
         {/* Centre status indicator */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', paddingTop: '1.5rem' }}>
           <div className={`interaction-indicator ${report ? (isInteraction ? 'indicator-danger' : 'indicator-safe') : 'indicator-pending'}`}>
-            {report ? (isInteraction ? '<AlertTriangle className="icon" size={20} />' : '<CheckCircle className="icon" size={20} />') : '<ArrowRightLeft className="icon" size={20} />'}
+            {report ? (isInteraction ? <AlertTriangle size={20} /> : <CheckCircle size={20} />) : <ArrowRightLeft size={20} />}
           </div>
         </div>
 
@@ -625,10 +627,10 @@ export default function Home() {
               {/* Summary */}
               <div style={{ flex: 1, minWidth: 220 }}>
                 <div className={`status-badge ${isInteraction ? (report.severity === 'major' || report.severity === 'contraindicated' ? 'status-danger' : 'status-warning') : 'status-safe'}`}>
-                  {report.severity === 'contraindicated' ? '<XCircle className="icon" size={16} /> CONTRAINDICATED' :
-                   report.severity === 'major'           ? '<AlertOctagon className="icon" size={16} /> MAJOR INTERACTION' :
-                   report.severity === 'moderate'        ? '<AlertCircle className="icon" size={16} /> MODERATE INTERACTION' :
-                   report.severity === 'minor'           ? '<CheckCircle className="icon" size={16} /> MINOR INTERACTION' : '<CheckCircle className="icon" size={20} /> NO SIGNIFICANT INTERACTION'}
+                  {report.severity === 'contraindicated' ? <><XCircle className="icon" size={16} /> CONTRAINDICATED</> :
+                   report.severity === 'major'           ? <><AlertOctagon className="icon" size={16} /> MAJOR INTERACTION</> :
+                   report.severity === 'moderate'        ? <><AlertCircle className="icon" size={16} /> MODERATE INTERACTION</> :
+                   report.severity === 'minor'           ? <><CheckCircle className="icon" size={16} /> MINOR INTERACTION</> : <><CheckCircle className="icon" size={20} /> NO SIGNIFICANT INTERACTION</>}
                 </div>
                 <p style={{ fontSize: '0.97rem', lineHeight: 1.7, marginTop: '0.75rem', color: 'var(--text-main)' }}>{report.executiveSummary}</p>
                 <div style={{ marginTop: '0.75rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
