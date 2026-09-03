@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DDIAnalysis } from "../lib/ai/schemas";
+import { Pill, Microscope, AlertTriangle, CheckCircle, ArrowRightLeft, XCircle, AlertOctagon, AlertCircle, FileText, Scale, ArrowUp, User, ClipboardList, Settings, Users, Dna, BarChart, Lightbulb, Beaker } from "lucide-react";
 
 interface DrugSearchResult {
   id: string;
@@ -188,7 +189,7 @@ function RadarChart({ d1, d2, drug1Name, drug2Name, inView = true }: { d1: ToxSc
 
   return (
     <div className="chart-container slide-up delay-3" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div className="chart-title">🧬 Organ Toxicity Radar</div>
+      <div className="chart-title"><Dna className="icon" size={20} /> Organ Toxicity Radar</div>
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} style={{ width: '100%', maxWidth: 260, overflow: 'visible' }}>
         {/* Grid rings */}
         {rings.map(ring => {
@@ -249,7 +250,7 @@ function ADMEChart({ report, drug1Name, drug2Name }: { report: DDIAnalysis; drug
   const params = ['absorption', 'distribution', 'metabolism', 'excretion'] as const;
   return (
     <div ref={ref} className="chart-container">
-      <div className="chart-title">⚗️ ADME Comparison</div>
+      <div className="chart-title"><Beaker className="icon" size={20} /> ADME Comparison</div>
       {params.map((p, i) => (
         <div className="chart-row" key={p}>
           <div className="chart-label" style={{ textTransform: 'capitalize' }}>{p}</div>
@@ -473,6 +474,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [stepIndex, setStepIndex] = useState(0);
   const [doseMode, setDoseMode] = useState<'normal' | 'high' | 'elderly'>('normal');
+  const [activeTab, setActiveTab] = useState<'overview' | 'adme' | 'toxicity' | 'alternatives'>('overview');
   const reportRef = useRef<HTMLDivElement>(null);
 
   // Stepper animation
@@ -548,7 +550,7 @@ export default function Home() {
     <div style={{ paddingBottom: '4rem' }}>
       {/* Hero */}
       <div style={{ textAlign: 'center', marginBottom: '2.5rem', paddingTop: '1.5rem' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>💊</div>
+        <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}><Pill className="icon" size={20} /></div>
         <h1 style={{ color: 'var(--text-main)', marginBottom: '0.5rem' }}>Drug-Drug Interaction Checker</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '550px', margin: '0 auto' }}>
           Select two drugs to check for interactions, view ADME & toxicity charts, and get AI-powered clinical analysis.
@@ -566,7 +568,7 @@ export default function Home() {
         {/* Centre status indicator */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', paddingTop: '1.5rem' }}>
           <div className={`interaction-indicator ${report ? (isInteraction ? 'indicator-danger' : 'indicator-safe') : 'indicator-pending'}`}>
-            {report ? (isInteraction ? '⚠️' : '✅') : '⇄'}
+            {report ? (isInteraction ? '<AlertTriangle className="icon" size={20} />' : '<CheckCircle className="icon" size={20} />') : '<ArrowRightLeft className="icon" size={20} />'}
           </div>
         </div>
 
@@ -581,7 +583,7 @@ export default function Home() {
       {drug1 && drug2 && !report && !analyzing && (
         <div className="fade-in" style={{ textAlign: 'center', marginTop: '1rem', marginBottom: '1rem' }}>
           <button className="btn btn-primary" style={{ fontSize: '1.05rem', padding: '0.85rem 2.5rem' }} onClick={handleAnalyze}>
-            🔬 Check Interaction
+            <Microscope className="icon" size={20} /> Check Interaction
           </button>
         </div>
       )}
@@ -623,10 +625,10 @@ export default function Home() {
               {/* Summary */}
               <div style={{ flex: 1, minWidth: 220 }}>
                 <div className={`status-badge ${isInteraction ? (report.severity === 'major' || report.severity === 'contraindicated' ? 'status-danger' : 'status-warning') : 'status-safe'}`}>
-                  {report.severity === 'contraindicated' ? '⛔ CONTRAINDICATED' :
-                   report.severity === 'major'           ? '🔴 MAJOR INTERACTION' :
-                   report.severity === 'moderate'        ? '🟡 MODERATE INTERACTION' :
-                   report.severity === 'minor'           ? '🟢 MINOR INTERACTION' : '✅ NO SIGNIFICANT INTERACTION'}
+                  {report.severity === 'contraindicated' ? '<XCircle className="icon" size={16} /> CONTRAINDICATED' :
+                   report.severity === 'major'           ? '<AlertOctagon className="icon" size={16} /> MAJOR INTERACTION' :
+                   report.severity === 'moderate'        ? '<AlertCircle className="icon" size={16} /> MODERATE INTERACTION' :
+                   report.severity === 'minor'           ? '<CheckCircle className="icon" size={16} /> MINOR INTERACTION' : '<CheckCircle className="icon" size={20} /> NO SIGNIFICANT INTERACTION'}
                 </div>
                 <p style={{ fontSize: '0.97rem', lineHeight: 1.7, marginTop: '0.75rem', color: 'var(--text-main)' }}>{report.executiveSummary}</p>
                 <div style={{ marginTop: '0.75rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -637,153 +639,183 @@ export default function Home() {
               </div>
               {/* Print button */}
               <button className="btn btn-outline print-hide" style={{ fontSize: '0.82rem', padding: '0.5rem 0.9rem', flexShrink: 0 }} onClick={handlePrint}>
-                📄 Print Summary
+                <FileText className="icon" size={16} /> Print Summary
               </button>
             </div>
           </Reveal>
 
-          {/* ── Charts Row ── */}
-          {/* Dosage slider */}
-          <Reveal className="card" delay={150} style={{ marginBottom: '1rem', padding: '1rem 1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <div style={{ fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>💊 Dose Simulation:</div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {(['normal', 'high', 'elderly'] as const).map(mode => (
-                  <button key={mode} onClick={() => setDoseMode(mode)}
-                    className={`dose-pill ${doseMode === mode ? 'dose-pill-active' : ''}`}>
-                    {mode === 'normal' ? '⚖️ Normal' : mode === 'high' ? '⬆️ High Dose' : '👴 Elderly'}
-                  </button>
-                ))}
-              </div>
-              {doseMode !== 'normal' && (
-                <span style={{ fontSize: '0.78rem', color: 'var(--warning)' }}>
-                  ⚠ Toxicity scaled ×{multiplier.toFixed(2)} — bars may shift to higher risk
-                </span>
-              )}
+          {/* ── Sub-navigation Pills ── */}
+          <Reveal delay={120} className="print-hide">
+            <div className="tabs-container">
+              <button className={`tab-pill ${activeTab === 'overview' ? 'tab-pill-active' : ''}`} onClick={() => setActiveTab('overview')}>Overview</button>
+              <button className={`tab-pill ${activeTab === 'adme' ? 'tab-pill-active' : ''}`} onClick={() => setActiveTab('adme')}>ADME & Kinetics</button>
+              <button className={`tab-pill ${activeTab === 'toxicity' ? 'tab-pill-active' : ''}`} onClick={() => setActiveTab('toxicity')}>Organ Toxicity</button>
+              <button className={`tab-pill ${activeTab === 'alternatives' ? 'tab-pill-active' : ''}`} onClick={() => setActiveTab('alternatives')}>Alternatives</button>
             </div>
           </Reveal>
 
-          <Reveal delay={200} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-            <ADMEChart report={report} drug1Name={drug1?.name || 'Drug 1'} drug2Name={drug2?.name || 'Drug 2'} />
-            <DosageToxicityChart report={report} drug1Name={drug1?.name || 'Drug 1'} drug2Name={drug2?.name || 'Drug 2'} multiplier={multiplier} />
-            <RadarChart
-              d1={{ ...report.toxicityScores.drug1 }}
-              d2={{ ...report.toxicityScores.drug2 }}
-              drug1Name={drug1?.name || 'Drug 1'}
-              drug2Name={drug2?.name || 'Drug 2'}
-            />
-          </Reveal>
-
-          {/* ── Mechanisms ── */}
-          {report.interactionMechanisms.length > 0 && (
-            <Reveal className="report-section" delay={100}>
-              <h3>⚙️ Interaction Mechanisms</h3>
-              {report.interactionMechanisms.map((m, i) => (
-                <div key={i} className="mechanism-card">
-                  <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>{m.type}</strong>
-                  <p style={{ color: 'var(--text-muted)', margin: '0.4rem 0', fontSize: '0.9rem' }}>{m.explanation}</p>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--accent-primary)' }}>Evidence: {m.evidence}</div>
+          {/* ── OVERVIEW TAB ── */}
+          {activeTab === 'overview' && (
+            <div className="tab-content" key="overview">
+              <Reveal className="card" delay={150} style={{ marginBottom: '1rem', padding: '1rem 1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap' }}><Pill className="icon" size={20} /> Dose Simulation:</div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {(['normal', 'high', 'elderly'] as const).map(mode => (
+                      <button key={mode} onClick={() => setDoseMode(mode)}
+                        className={`dose-pill ${doseMode === mode ? 'dose-pill-active' : ''}`}>
+                        {mode === 'normal' ? '<Scale className="icon" size={16} /> Normal' : mode === 'high' ? '<ArrowUp className="icon" size={16} /> High Dose' : '<User className="icon" size={16} /> Elderly'}
+                      </button>
+                    ))}
+                  </div>
+                  {doseMode !== 'normal' && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--warning)' }}>
+                      <AlertTriangle className="icon" size={16} /> Toxicity scaled ×{multiplier.toFixed(2)} — bars may shift to higher risk
+                    </span>
+                  )}
                 </div>
-              ))}
-            </Reveal>
+              </Reveal>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
+                <Reveal className="report-section" delay={100}>
+                  <h3><ClipboardList className="icon" size={20} /> Clinical Significance</h3>
+                  <p style={{ fontSize: '0.9rem', lineHeight: 1.7 }}>{report.clinicalSignificance}</p>
+                  {report.potentialConsequences.length > 0 && (
+                    <ul style={{ paddingLeft: '1.25rem', marginTop: '0.75rem', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                      {report.potentialConsequences.map((c, i) => <li key={i} style={{ marginBottom: '0.3rem' }}>{c}</li>)}
+                    </ul>
+                  )}
+                </Reveal>
+
+                {report.interactionMechanisms.length > 0 && (
+                  <Reveal className="report-section" delay={200}>
+                    <h3><Settings className="icon" size={20} /> Interaction Mechanisms</h3>
+                    {report.interactionMechanisms.map((m, i) => (
+                      <div key={i} className="mechanism-card">
+                        <strong style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>{m.type}</strong>
+                        <p style={{ color: 'var(--text-muted)', margin: '0.4rem 0', fontSize: '0.9rem' }}>{m.explanation}</p>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--accent-primary)' }}>Evidence: {m.evidence}</div>
+                      </div>
+                    ))}
+                  </Reveal>
+                )}
+              </div>
+
+              <Reveal className="report-section" delay={100} style={{ marginTop: '1.5rem' }}>
+                <h3><Users className="icon" size={20} /> Demographic Considerations</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
+                  {[
+                    { label: 'Pediatric', val: report.demographicEffects.pediatric },
+                    { label: 'Geriatric', val: report.demographicEffects.geriatric },
+                    { label: 'Hepatic Impairment', val: report.demographicEffects.hepaticImpairment },
+                    { label: 'Renal Impairment', val: report.demographicEffects.renalImpairment },
+                    { label: 'Pregnancy/Lactation', val: report.demographicEffects.pregnancyLactation },
+                  ].map((item, i) => (
+                    <div key={i} style={{ background: 'var(--bg-hover)', padding: '0.65rem 0.85rem', borderRadius: '8px' }}>
+                      <strong style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</strong>
+                      <div style={{ marginTop: '0.2rem', color: 'var(--text-muted)' }}>{item.val}</div>
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
+            </div>
           )}
 
-          {/* ── Clinical + ADME text ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
-            <Reveal className="report-section" delay={100}>
-              <h3>📋 Clinical Significance</h3>
-              <p style={{ fontSize: '0.9rem', lineHeight: 1.7 }}>{report.clinicalSignificance}</p>
-              {report.potentialConsequences.length > 0 && (
-                <ul style={{ paddingLeft: '1.25rem', marginTop: '0.75rem', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                  {report.potentialConsequences.map((c, i) => <li key={i} style={{ marginBottom: '0.3rem' }}>{c}</li>)}
-                </ul>
-              )}
-            </Reveal>
-            <Reveal className="report-section" delay={200}>
-              <h3>🧬 ADME Analysis</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.88rem' }}>
-                <div><strong style={{ color: 'var(--text-dim)' }}>Absorption:</strong> {report.admeAnalysis.absorption}</div>
-                <div><strong style={{ color: 'var(--text-dim)' }}>Distribution:</strong> {report.admeAnalysis.distribution}</div>
-                <div><strong style={{ color: 'var(--text-dim)' }}>Metabolism:</strong> {report.admeAnalysis.metabolism}</div>
-                <div><strong style={{ color: 'var(--text-dim)' }}>Excretion:</strong> {report.admeAnalysis.excretion}</div>
-              </div>
-            </Reveal>
-          </div>
+          {/* ── ADME TAB ── */}
+          {activeTab === 'adme' && (
+            <div className="tab-content" key="adme">
+              <Reveal delay={100} style={{ marginBottom: '1.5rem' }}>
+                <ADMEChart report={report} drug1Name={drug1?.name || 'Drug 1'} drug2Name={drug2?.name || 'Drug 2'} />
+              </Reveal>
+              <Reveal className="report-section" delay={150}>
+                <h3><Dna className="icon" size={20} /> ADME Analysis</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.88rem' }}>
+                  <div><strong style={{ color: 'var(--text-dim)' }}>Absorption:</strong> {report.admeAnalysis.absorption}</div>
+                  <div><strong style={{ color: 'var(--text-dim)' }}>Distribution:</strong> {report.admeAnalysis.distribution}</div>
+                  <div><strong style={{ color: 'var(--text-dim)' }}>Metabolism:</strong> {report.admeAnalysis.metabolism}</div>
+                  <div><strong style={{ color: 'var(--text-dim)' }}>Excretion:</strong> {report.admeAnalysis.excretion}</div>
+                </div>
+              </Reveal>
+            </div>
+          )}
 
-          {/* ── Alternatives with Quick-Swap ── */}
-          {report.alternatives.length > 0 && (
-            <Reveal className="report-section" delay={100} style={{ marginTop: '1.5rem' }}>
-              <h3>💡 Suggested Alternatives</h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                {isInteraction ? 'These drugs may carry lower interaction risk:' : 'Other options in the same therapeutic class:'}
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '0.75rem' }}>
-                {report.alternatives.map((alt, i) => (
-                  <div key={i} className="alt-card">
-                    <div className="alt-name">{alt.drugName}</div>
-                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.3rem 0 0.6rem' }}>{alt.rationale}</p>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span className="alt-risk" style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' }}>
-                        Risk: {alt.interactionRisk}
-                      </span>
-                      <button className="swap-btn print-hide" onClick={() => handleSwap(alt.drugName)}>
-                        ⇄ Swap with Drug 2
-                      </button>
+          {/* ── TOXICITY TAB ── */}
+          {activeTab === 'toxicity' && (
+            <div className="tab-content" key="toxicity">
+              <Reveal delay={100} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                <DosageToxicityChart report={report} drug1Name={drug1?.name || 'Drug 1'} drug2Name={drug2?.name || 'Drug 2'} multiplier={multiplier} />
+                <RadarChart
+                  d1={{ ...report.toxicityScores.drug1 }}
+                  d2={{ ...report.toxicityScores.drug2 }}
+                  drug1Name={drug1?.name || 'Drug 1'}
+                  drug2Name={drug2?.name || 'Drug 2'}
+                />
+              </Reveal>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                <Reveal className="report-section" delay={150}>
+                  <h3><BarChart className="icon" size={20} /> Monitoring Required</h3>
+                  {report.monitoring.length > 0 ? report.monitoring.map((m, i) => (
+                    <div key={i} className="monitoring-card">
+                      <strong>{m.parameter}</strong>
+                      {m.frequency && <span style={{ color: 'var(--accent-primary)', fontSize: '0.8rem', marginLeft: '0.4rem' }}>({m.frequency})</span>}
+                      <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{m.reason}</p>
+                    </div>
+                  )) : <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>No specific monitoring required.</p>}
+                </Reveal>
+                <Reveal className="report-section" delay={200}>
+                  <h3><Pill className="icon" size={20} /> Dose Risk & Management</h3>
+                  <div style={{ background: 'var(--bg-hover)', padding: '1rem', borderRadius: '10px', fontSize: '0.88rem' }}>
+                    {report.doseRisk.doseAdjustmentNeeded && (
+                      <div style={{ color: 'var(--warning)', fontWeight: 600, marginBottom: '0.5rem' }}><AlertTriangle className="icon" size={16} /> Dose Adjustment Required</div>
+                    )}
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <strong style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>Dangerous Threshold:</strong>
+                      <div style={{ marginTop: '0.15rem' }}>{report.doseRisk.dangerousDoseThreshold}</div>
+                    </div>
+                    <div>
+                      <strong style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>Safe Co-Admin Guidance:</strong>
+                      <div style={{ marginTop: '0.15rem' }}>{report.doseRisk.safeCoAdminGuidance}</div>
                     </div>
                   </div>
-                ))}
+                </Reveal>
               </div>
-            </Reveal>
+            </div>
           )}
 
-          {/* ── Monitoring + Dose Risk ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
-            <Reveal className="report-section" delay={100}>
-              <h3>📊 Monitoring Required</h3>
-              {report.monitoring.length > 0 ? report.monitoring.map((m, i) => (
-                <div key={i} className="monitoring-card">
-                  <strong>{m.parameter}</strong>
-                  {m.frequency && <span style={{ color: 'var(--accent-primary)', fontSize: '0.8rem', marginLeft: '0.4rem' }}>({m.frequency})</span>}
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{m.reason}</p>
-                </div>
-              )) : <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>No specific monitoring required.</p>}
-            </Reveal>
-            <Reveal className="report-section" delay={200}>
-              <h3>💊 Dose Risk & Management</h3>
-              <div style={{ background: 'var(--bg-hover)', padding: '1rem', borderRadius: '10px', fontSize: '0.88rem' }}>
-                {report.doseRisk.doseAdjustmentNeeded && (
-                  <div style={{ color: 'var(--warning)', fontWeight: 600, marginBottom: '0.5rem' }}>⚠ Dose Adjustment Required</div>
-                )}
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <strong style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>Dangerous Threshold:</strong>
-                  <div style={{ marginTop: '0.15rem' }}>{report.doseRisk.dangerousDoseThreshold}</div>
-                </div>
-                <div>
-                  <strong style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>Safe Co-Admin Guidance:</strong>
-                  <div style={{ marginTop: '0.15rem' }}>{report.doseRisk.safeCoAdminGuidance}</div>
-                </div>
-              </div>
-            </Reveal>
-          </div>
-
-          {/* ── Demographics ── */}
-          <Reveal className="report-section" delay={100} style={{ marginTop: '1.5rem' }}>
-            <h3>👥 Demographic Considerations</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
-              {[
-                { label: 'Pediatric', val: report.demographicEffects.pediatric },
-                { label: 'Geriatric', val: report.demographicEffects.geriatric },
-                { label: 'Hepatic Impairment', val: report.demographicEffects.hepaticImpairment },
-                { label: 'Renal Impairment', val: report.demographicEffects.renalImpairment },
-                { label: 'Pregnancy/Lactation', val: report.demographicEffects.pregnancyLactation },
-              ].map((item, i) => (
-                <div key={i} style={{ background: 'var(--bg-hover)', padding: '0.65rem 0.85rem', borderRadius: '8px' }}>
-                  <strong style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</strong>
-                  <div style={{ marginTop: '0.2rem', color: 'var(--text-muted)' }}>{item.val}</div>
-                </div>
-              ))}
+          {/* ── ALTERNATIVES TAB ── */}
+          {activeTab === 'alternatives' && (
+            <div className="tab-content" key="alternatives">
+              {report.alternatives.length > 0 ? (
+                <Reveal className="report-section" delay={100}>
+                  <h3><Lightbulb className="icon" size={20} /> Suggested Alternatives</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                    {isInteraction ? 'These drugs may carry lower interaction risk:' : 'Other options in the same therapeutic class:'}
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '0.75rem' }}>
+                    {report.alternatives.map((alt, i) => (
+                      <div key={i} className="alt-card">
+                        <div className="alt-name">{alt.drugName}</div>
+                        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.3rem 0 0.6rem' }}>{alt.rationale}</p>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <span className="alt-risk" style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' }}>
+                            Risk: {alt.interactionRisk}
+                          </span>
+                          <button className="swap-btn print-hide" onClick={() => handleSwap(alt.drugName)}>
+                            <ArrowRightLeft className="icon" size={20} /> Swap with Drug 2
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Reveal>
+              ) : (
+                <Reveal className="report-section" delay={100}>
+                  <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0' }}>No alternatives suggested by AI.</p>
+                </Reveal>
+              )}
             </div>
-          </Reveal>
+          )}
 
           {/* Evidence + Disclaimer */}
           <Reveal delay={150}>

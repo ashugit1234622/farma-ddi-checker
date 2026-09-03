@@ -15,22 +15,22 @@
   "type": "commonjs",
   "dependencies": {
     "@google/genai": "^2.21.0",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/express": "^5.0.6",
     "@types/node": "^26.4.0",
     "@types/react": "^19.2.18",
+    "@types/uuid": "^10.0.0",
     "better-sqlite3": "^13.0.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "lucide-react": "^1.40.0",
     "next": "^14.2.35",
     "openai": "^7.8.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "uuid": "^14.0.2",
-    "zod": "^4.5.2",
-    "@types/better-sqlite3": "^9.6.0",
-    "@types/uuid": "^10.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
-  },
-  "devDependencies": {}
+    "typescript": "^5.9.3",
+    "uuid": "^14.0.2",
+    "zod": "^4.5.2"
+  }
 }

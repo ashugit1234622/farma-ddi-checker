@@ -58,14 +58,19 @@ export async function buildEvidenceBundle(drug1Id: string, drug2Id: string) {
 
   const findDrug = (id: string) => {
     const lower = id.toLowerCase().trim();
-    return (
-      drugs.find((d: any) => 
-        d._id?.toLowerCase() === lower || 
-        d.name?.toLowerCase() === lower || 
-        d.genericName?.toLowerCase() === lower ||
-        (d.synonyms && d.synonyms.some((s: string) => s.toLowerCase() === lower))
-      ) || createFallbackDrug(id)
+    const found = drugs.find((d: any) => 
+      d._id?.toLowerCase() === lower || 
+      d.name?.toLowerCase() === lower || 
+      d.genericName?.toLowerCase() === lower ||
+      (d.synonyms && d.synonyms.some((s: string) => s.toLowerCase() === lower))
     );
+    if (found) {
+      if (found.name.toLowerCase() !== lower && found.genericName?.toLowerCase() !== lower) {
+        return { ...found, userQueriedName: id };
+      }
+      return found;
+    }
+    return createFallbackDrug(id);
   };
 
   const drug1 = findDrug(drug1Id);
