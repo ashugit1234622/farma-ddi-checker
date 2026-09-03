@@ -11485,7 +11485,8 @@
     "synonyms": [
       "Amoxil",
       "Mox",
-      "Novamox"
+      "Novamox",
+      "Augmentin"
     ],
     "drugClass": [
       "penicillin",
@@ -18089,7 +18090,9 @@
     "genericName": "pantoprazole",
     "rxcui": "40790",
     "synonyms": [
-      "Protonix"
+      "Protonix",
+      "Pan",
+      "Pantocid"
     ],
     "drugClass": [
       "Rilpivirine",
@@ -18128,7 +18131,8 @@
     "genericName": "ranitidine hydrochloride",
     "synonyms": [
       "Zantac",
-      "Rantac"
+      "Rantac",
+      "Aciloc"
     ],
     "drugClass": [
       "H2 blocker",

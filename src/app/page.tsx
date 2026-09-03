@@ -329,6 +329,7 @@ function DrugSearchBox({ label, drug, onSelect, onClear, accentColor }: {
 }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<DrugSearchResult[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   const search = async (q: string) => {
     if (q.length < 1) { setResults([]); return; }
@@ -339,37 +340,109 @@ function DrugSearchBox({ label, drug, onSelect, onClear, accentColor }: {
     } catch { /* ignore */ }
   };
 
+  const handleSelectCustom = (customName: string) => {
+    const trimmed = customName.trim();
+    if (!trimmed) return;
+    const capitalized = trimmed
+      .split(/[\s-]+/)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+    onSelect({
+      id: trimmed.toLowerCase().replace(/\s+/g, '-'),
+      name: capitalized,
+      genericName: trimmed.toLowerCase(),
+      drugClass: ['Clinical Medication'],
+      synonyms: [capitalized],
+      indications: ['User Specified'],
+    });
+    setQuery('');
+    setResults([]);
+    setIsOpen(false);
+  };
+
   return (
     <div className="card" style={{ flex: '1 1 280px', minHeight: '180px' }}>
       <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 500 }}>{label}</h3>
       {!drug ? (
         <div style={{ position: 'relative' }}>
-          <input
-            className="input"
-            placeholder="Search by name, class, or indication..."
-            value={query}
-            onChange={e => { setQuery(e.target.value); search(e.target.value); }}
-          />
-          {results.length > 0 && (
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <input
+              className="input"
+              placeholder="Search or type any drug name..."
+              value={query}
+              onChange={e => {
+                setQuery(e.target.value);
+                setIsOpen(true);
+                search(e.target.value);
+              }}
+              onFocus={() => setIsOpen(true)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && query.trim().length > 0) {
+                  e.preventDefault();
+                  if (results.length > 0 && results[0].name.toLowerCase() === query.trim().toLowerCase()) {
+                    onSelect(results[0]);
+                    setQuery('');
+                    setResults([]);
+                    setIsOpen(false);
+                  } else {
+                    handleSelectCustom(query);
+                  }
+                }
+              }}
+            />
+            {query.trim().length > 0 && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', flexShrink: 0, whiteSpace: 'nowrap' }}
+                onClick={() => handleSelectCustom(query)}
+              >
+                Select
+              </button>
+            )}
+          </div>
+
+          {isOpen && query.trim().length > 0 && (
             <div style={{
               position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
               backgroundColor: 'var(--bg-card)', marginTop: '0.4rem',
               border: '1px solid var(--border)', borderRadius: '10px',
               maxHeight: '280px', overflowY: 'auto',
-              boxShadow: '0 12px 28px rgba(0,0,0,0.4)'
+              boxShadow: '0 12px 28px rgba(0,0,0,0.5)'
             }}>
               {results.map(d => (
                 <div key={d.id}
                   style={{ padding: '0.7rem 1rem', borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background 0.15s' }}
                   onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
                   onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  onClick={() => { onSelect(d); setQuery(''); setResults([]); }}>
+                  onClick={() => { onSelect(d); setQuery(''); setResults([]); setIsOpen(false); }}>
                   <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{d.name}</div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
                     {d.drugClass.join(' · ')}
                   </div>
                 </div>
               ))}
+              <div
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderTop: results.length > 0 ? '1px dashed var(--border)' : 'none',
+                  cursor: 'pointer',
+                  backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                  color: 'var(--accent-primary)',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'background 0.15s'
+                }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.16)')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.08)')}
+                onClick={() => handleSelectCustom(query)}
+              >
+                <span>➕ Use <strong>"{query.trim()}"</strong> as custom drug</span>
+                <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>Press Enter ↵</span>
+              </div>
             </div>
           )}
         </div>
