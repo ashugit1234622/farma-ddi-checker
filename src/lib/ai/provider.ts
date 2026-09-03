@@ -25,7 +25,7 @@ export class GroqProvider implements AIProvider {
       apiKey,
       baseURL: "https://api.groq.com/openai/v1",
     });
-    this.modelId = process.env.AI_MODEL || "llama-3.3-70b-versatile";
+    this.modelId = process.env.AI_MODEL || "llama-3.1-70b-versatile";
   }
 
   async complete(system: string, user: string): Promise<string> {
