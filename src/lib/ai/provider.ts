@@ -33,6 +33,7 @@ export class GeminiProvider implements AIProvider {
       config: {
         systemInstruction: system,
         responseMimeType: "application/json",
+        temperature: 0,
       }
     });
 
