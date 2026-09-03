@@ -59,8 +59,8 @@ export class GeminiProvider implements AIProvider {
       throw new Error("GEMINI_API_KEY is not set.");
     }
     this.ai = new GoogleGenAI({ apiKey });
-    // Use 1.5-flash to avoid 503 High Demand errors on the newer 2.5 models
-    this.modelId = "gemini-1.5-flash";
+    // Use gemini-2.5-flash (with the retry system handling any 503 spikes)
+    this.modelId = "gemini-2.5-flash";
   }
 
   async complete(system: string, user: string): Promise<string> {
