@@ -59,7 +59,8 @@ export class GeminiProvider implements AIProvider {
       throw new Error("GEMINI_API_KEY is not set.");
     }
     this.ai = new GoogleGenAI({ apiKey });
-    this.modelId = "gemini-2.5-flash";
+    // Use 1.5-flash to avoid 503 High Demand errors on the newer 2.5 models
+    this.modelId = "gemini-1.5-flash";
   }
 
   async complete(system: string, user: string): Promise<string> {
@@ -81,7 +82,7 @@ export class GeminiProvider implements AIProvider {
 }
 
 /**
- * Fallback provider that tries multiple providers in sequence.
+ * Fallback provider that tries multiple providers in sequence with retries.
  */
 export class FallbackProvider implements AIProvider {
   private providers: AIProvider[];
@@ -98,19 +99,36 @@ export class FallbackProvider implements AIProvider {
     return `Fallback Chain (Primary: ${this.providers[0].modelId})`;
   }
 
+  private async delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   async complete(system: string, user: string): Promise<string> {
     let lastError: any;
     
     for (const provider of this.providers) {
-      try {
-        console.log(`[AI] Attempting generation with ${provider.modelId}...`);
-        const result = await provider.complete(system, user);
-        console.log(`[AI] Success with ${provider.modelId}`);
-        return result;
-      } catch (err) {
-        console.error(`[AI] Provider ${provider.modelId} failed:`, err instanceof Error ? err.message : String(err));
-        lastError = err;
-        // Continue to the next provider in the chain
+      let retries = 2; // Try up to 3 times per provider
+      while (retries >= 0) {
+        try {
+          console.log(`[AI] Attempting generation with ${provider.modelId}...`);
+          const result = await provider.complete(system, user);
+          console.log(`[AI] Success with ${provider.modelId}`);
+          return result;
+        } catch (err: any) {
+          const errMsg = err instanceof Error ? err.message : String(err);
+          console.error(`[AI] Provider ${provider.modelId} failed:`, errMsg);
+          lastError = err;
+          
+          // Only retry on rate limits or server overloads (429 or 503)
+          if (retries > 0 && (errMsg.includes("503") || errMsg.includes("429") || errMsg.includes("UNAVAILABLE") || errMsg.includes("high demand"))) {
+            console.log(`[AI] Waiting 2 seconds before retrying ${provider.modelId}...`);
+            await this.delay(2000);
+            retries--;
+          } else {
+            // Unrecoverable error or out of retries, move to next provider
+            break;
+          }
+        }
       }
     }
     
