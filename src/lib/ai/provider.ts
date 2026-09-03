@@ -52,20 +52,22 @@ export class GroqProvider implements AIProvider {
 export class GeminiProvider implements AIProvider {
   private ai: GoogleGenAI;
   readonly modelId: string;
+  private envVarName: string;
 
-  constructor() {
-    const apiKey = process.env.GEMINI_API_KEY;
+  constructor(envVarName: string = "GEMINI_API_KEY") {
+    this.envVarName = envVarName;
+    const apiKey = process.env[envVarName];
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not set.");
+      throw new Error(`${envVarName} is not set.`);
     }
     this.ai = new GoogleGenAI({ apiKey });
     // Use gemini-2.5-flash (with the retry system handling any 503 spikes)
-    this.modelId = "gemini-2.5-flash";
+    this.modelId = `gemini-2.5-flash (${envVarName})`;
   }
 
   async complete(system: string, user: string): Promise<string> {
     const response = await this.ai.models.generateContent({
-      model: this.modelId,
+      model: "gemini-2.5-flash",
       contents: user,
       config: {
         systemInstruction: system,
@@ -119,7 +121,7 @@ export class FallbackProvider implements AIProvider {
           console.error(`[AI] Provider ${provider.modelId} failed:`, errMsg);
           
           // Only retry on rate limits or server overloads (429 or 503)
-          if (retries > 0 && (errMsg.includes("503") || errMsg.includes("429") || errMsg.includes("UNAVAILABLE") || errMsg.includes("high demand"))) {
+          if (retries > 0 && (errMsg.includes("503") || errMsg.includes("429") || errMsg.includes("UNAVAILABLE") || errMsg.includes("high demand") || errMsg.includes("RESOURCE_EXHAUSTED"))) {
             console.log(`[AI] Waiting 2 seconds before retrying ${provider.modelId}...`);
             await this.delay(2000);
             retries--;
@@ -139,24 +141,33 @@ export class FallbackProvider implements AIProvider {
 let cachedProvider: AIProvider | null = null;
 
 /** 
- * Returns a FallbackProvider that tries Groq first, then Gemini if Groq fails or rate limits.
+ * Returns a FallbackProvider that tries providers sequentially.
  */
 export function getAIProvider(): AIProvider {
   if (!cachedProvider) {
     const availableProviders: AIProvider[] = [];
     
-    // Try to instantiate Groq
+    // Groq is commented out as requested
+    /*
     try {
       availableProviders.push(new GroqProvider());
     } catch (e) {
       console.warn("GroqProvider skipped:", e instanceof Error ? e.message : String(e));
     }
+    */
     
-    // Try to instantiate Gemini
+    // Primary Gemini
     try {
-      availableProviders.push(new GeminiProvider());
+      availableProviders.push(new GeminiProvider("GEMINI_API_KEY"));
     } catch (e) {
-      console.warn("GeminiProvider skipped:", e instanceof Error ? e.message : String(e));
+      console.warn("Primary GeminiProvider skipped:", e instanceof Error ? e.message : String(e));
+    }
+
+    // Secondary Gemini
+    try {
+      availableProviders.push(new GeminiProvider("GEMINI_API_KEY_SECONDARY"));
+    } catch (e) {
+      console.warn("Secondary GeminiProvider skipped:", e instanceof Error ? e.message : String(e));
     }
     
     if (availableProviders.length === 0) {
