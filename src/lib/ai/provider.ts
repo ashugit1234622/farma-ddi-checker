@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 
 export interface AIProvider {
   /** Sends a system + user prompt pair, expects back a raw JSON string. */
@@ -7,40 +7,43 @@ export interface AIProvider {
 }
 
 /**
- * Real Gemini implementation. The API key is read from the server-side
- * env var only — it must never be sent to or read from the browser.
+ * Groq implementation using the OpenAI-compatible SDK.
+ * The API key is read from the server-side env var only.
  */
-export class GeminiProvider implements AIProvider {
-  private ai: GoogleGenAI;
+export class GroqProvider implements AIProvider {
+  private client: OpenAI;
   readonly modelId: string;
 
   constructor() {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
       throw new Error(
-        "GEMINI_API_KEY is not set. Add it to your .env.local (see .env.example)."
+        "GROQ_API_KEY is not set. Add it to your .env or Render environment variables."
       );
     }
-    this.ai = new GoogleGenAI({ apiKey });
-    // Use gemini-2.5-flash as the lightweight, low-cost model default
-    this.modelId = process.env.AI_MODEL || "gemini-2.5-flash";
+    this.client = new OpenAI({
+      apiKey,
+      baseURL: "https://api.groq.com/openai/v1",
+    });
+    this.modelId = process.env.AI_MODEL || "llama-3.3-70b-versatile";
   }
 
   async complete(system: string, user: string): Promise<string> {
-    const response = await this.ai.models.generateContent({
+    const response = await this.client.chat.completions.create({
       model: this.modelId,
-      contents: user,
-      config: {
-        systemInstruction: system,
-        responseMimeType: "application/json",
-        temperature: 0,
-      }
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      temperature: 0,
+      response_format: { type: "json_object" },
     });
 
-    if (!response.text) {
+    const text = response.choices?.[0]?.message?.content;
+    if (!text) {
       throw new Error("AI provider returned no text content.");
     }
-    return response.text;
+    return text;
   }
 }
 
@@ -49,7 +52,7 @@ let cachedProvider: AIProvider | null = null;
 /** Swap this factory to point at a different provider without touching callers. */
 export function getAIProvider(): AIProvider {
   if (!cachedProvider) {
-    cachedProvider = new GeminiProvider();
+    cachedProvider = new GroqProvider();
   }
   return cachedProvider;
 }
