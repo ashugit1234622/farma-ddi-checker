@@ -104,7 +104,7 @@ export class FallbackProvider implements AIProvider {
   }
 
   async complete(system: string, user: string): Promise<string> {
-    let lastError: any;
+    const allErrors: string[] = [];
     
     for (const provider of this.providers) {
       let retries = 2; // Try up to 3 times per provider
@@ -117,7 +117,6 @@ export class FallbackProvider implements AIProvider {
         } catch (err: any) {
           const errMsg = err instanceof Error ? err.message : String(err);
           console.error(`[AI] Provider ${provider.modelId} failed:`, errMsg);
-          lastError = err;
           
           // Only retry on rate limits or server overloads (429 or 503)
           if (retries > 0 && (errMsg.includes("503") || errMsg.includes("429") || errMsg.includes("UNAVAILABLE") || errMsg.includes("high demand"))) {
@@ -125,14 +124,15 @@ export class FallbackProvider implements AIProvider {
             await this.delay(2000);
             retries--;
           } else {
-            // Unrecoverable error or out of retries, move to next provider
+            // Unrecoverable error or out of retries, record it and move to next provider
+            allErrors.push(`[${provider.modelId}]: ${errMsg}`);
             break;
           }
         }
       }
     }
     
-    throw new Error(`All AI providers failed. Last error: ${lastError instanceof Error ? lastError.message : String(lastError)}`);
+    throw new Error(`All AI providers failed.\nErrors:\n${allErrors.join('\n')}`);
   }
 }
 
