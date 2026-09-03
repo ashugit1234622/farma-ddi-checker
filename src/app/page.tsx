@@ -44,10 +44,38 @@ const DOSE_MULTIPLIERS: Record<string, number> = {
   elderly: 1.25,
 };
 
+function useInView(threshold = 0.1): [any, boolean] {
+  const [inView, setInView] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setInView(true);
+        observer.disconnect(); // only animate once
+      }
+    }, { threshold });
+    
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  return [ref, inView];
+}
+
+function Reveal({ children, className = '', delay = 0, style }: { children: React.ReactNode, className?: string, delay?: number, style?: React.CSSProperties }) {
+  const [ref, inView] = useInView(0.1);
+  return (
+    <div ref={ref} className={`${className} scroll-reveal ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: `${delay}ms`, ...style }}>
+      {children}
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════════════════════
    RADIAL RISK GAUGE
 ══════════════════════════════════════════════════════ */
-function RadialGauge({ score, severity }: { score: number; severity: string }) {
+function RadialGauge({ score, severity, inView = true }: { score: number; severity: string; inView?: boolean }) {
   const [animScore, setAnimScore] = useState(0);
   const R = 54;
   const CIRC = 2 * Math.PI * R;
@@ -57,9 +85,11 @@ function RadialGauge({ score, severity }: { score: number; severity: string }) {
   const color = scoreToColor(animScore);
 
   useEffect(() => {
-    const t = setTimeout(() => setAnimScore(score), 200);
-    return () => clearTimeout(t);
-  }, [score]);
+    if (inView) {
+      const t = setTimeout(() => setAnimScore(score), 200);
+      return () => clearTimeout(t);
+    }
+  }, [score, inView]);
 
   const label =
     severity === 'contraindicated' ? 'CONTRAINDICATED' :
@@ -107,12 +137,14 @@ function RadialGauge({ score, severity }: { score: number; severity: string }) {
 ══════════════════════════════════════════════════════ */
 type ToxScores = { hepatic: number; renal: number; cardiac: number; neuro: number; hemato: number };
 
-function RadarChart({ d1, d2, drug1Name, drug2Name }: { d1: ToxScores; d2: ToxScores; drug1Name: string; drug2Name: string }) {
+function RadarChart({ d1, d2, drug1Name, drug2Name, inView = true }: { d1: ToxScores; d2: ToxScores; drug1Name: string; drug2Name: string; inView?: boolean }) {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
-    const t = setTimeout(() => setProgress(1), 300);
-    return () => clearTimeout(t);
-  }, [d1, d2]);
+    if (inView) {
+      const t = setTimeout(() => setProgress(1), 300);
+      return () => clearTimeout(t);
+    }
+  }, [d1, d2, inView]);
 
   const SIZE = 200;
   const CENTER = SIZE / 2;
@@ -194,12 +226,14 @@ function RadarChart({ d1, d2, drug1Name, drug2Name }: { d1: ToxScores; d2: ToxSc
 /* ══════════════════════════════════════════════════════
    ANIMATED BAR
 ══════════════════════════════════════════════════════ */
-function AnimatedBar({ value, className, delay = 0 }: { value: number; className: string; delay?: number }) {
+function AnimatedBar({ value, className, delay = 0, inView = true }: { value: number; className: string; delay?: number; inView?: boolean }) {
   const [width, setWidth] = useState(0);
   useEffect(() => {
-    const t = setTimeout(() => setWidth(Math.min(value, 100)), 100 + delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
+    if (inView) {
+      const t = setTimeout(() => setWidth(Math.min(value, 100)), 100 + delay);
+      return () => clearTimeout(t);
+    }
+  }, [value, delay, inView]);
   return (
     <div className="chart-bar-track">
       <div className={`chart-bar-fill animated ${className}`} style={{ width: `${width}%` }} />
@@ -211,16 +245,17 @@ function AnimatedBar({ value, className, delay = 0 }: { value: number; className
    ADME CHART
 ══════════════════════════════════════════════════════ */
 function ADMEChart({ report, drug1Name, drug2Name }: { report: DDIAnalysis; drug1Name: string; drug2Name: string }) {
+  const [ref, inView] = useInView();
   const params = ['absorption', 'distribution', 'metabolism', 'excretion'] as const;
   return (
-    <div className="chart-container slide-up delay-2">
+    <div ref={ref} className="chart-container">
       <div className="chart-title">⚗️ ADME Comparison</div>
       {params.map((p, i) => (
         <div className="chart-row" key={p}>
           <div className="chart-label" style={{ textTransform: 'capitalize' }}>{p}</div>
           <div className="chart-bars">
-            <AnimatedBar value={report.admeScores.drug1[p]} className="drug1" delay={i * 150} />
-            <AnimatedBar value={report.admeScores.drug2[p]} className="drug2" delay={i * 150 + 80} />
+            <AnimatedBar value={report.admeScores.drug1[p]} className="drug1" delay={i * 150} inView={inView} />
+            <AnimatedBar value={report.admeScores.drug2[p]} className="drug2" delay={i * 150 + 80} inView={inView} />
           </div>
           <div className="chart-value" style={{ fontSize: '0.65rem' }}>
             {report.admeScores.drug1[p]}<br />{report.admeScores.drug2[p]}
@@ -241,11 +276,12 @@ function ADMEChart({ report, drug1Name, drug2Name }: { report: DDIAnalysis; drug
 function DosageToxicityChart({ report, drug1Name, drug2Name, multiplier }: {
   report: DDIAnalysis; drug1Name: string; drug2Name: string; multiplier: number;
 }) {
+  const [ref, inView] = useInView();
   const params = ['hepatic', 'renal', 'cardiac', 'neuro', 'hemato'] as const;
   const labels: Record<string, string> = { hepatic: 'Hepatic', renal: 'Renal', cardiac: 'Cardiac', neuro: 'Neuro', hemato: 'Hemato' };
 
   return (
-    <div className="chart-container slide-up delay-3">
+    <div ref={ref} className="chart-container">
       <div className="chart-title">☠️ Adjusted Toxicity Profile</div>
       {params.map((p, i) => {
         const v1 = Math.min(Math.round(report.toxicityScores.drug1[p] * multiplier), 100);
@@ -254,8 +290,8 @@ function DosageToxicityChart({ report, drug1Name, drug2Name, multiplier }: {
           <div className="chart-row" key={p}>
             <div className="chart-label">{labels[p]}</div>
             <div className="chart-bars">
-              <AnimatedBar value={v1} className={getToxClass(v1)} delay={i * 80} />
-              <AnimatedBar value={v2} className={getToxClass(v2)} delay={i * 80 + 50} />
+              <AnimatedBar value={v1} className={getToxClass(v1)} delay={i * 80} inView={inView} />
+              <AnimatedBar value={v2} className={getToxClass(v2)} delay={i * 80 + 50} inView={inView} />
             </div>
             <div className="chart-value" style={{ fontSize: '0.65rem' }}>{v1}<br />{v2}</div>
           </div>
@@ -505,7 +541,7 @@ export default function Home() {
         <div ref={reportRef} className="fade-in" style={{ marginTop: '2rem' }}>
 
           {/* ── Top Row: Status Banner + Gauge ── */}
-          <div className="card scale-in" style={{ ...getSeverityStyle(), borderLeft: '4px solid', marginBottom: '1.5rem' }}>
+          <Reveal className="card" delay={100} style={{ ...getSeverityStyle(), borderLeft: '4px solid', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               {/* Gauge */}
               <div style={{ flexShrink: 0 }}>
@@ -531,11 +567,11 @@ export default function Home() {
                 📄 Print Summary
               </button>
             </div>
-          </div>
+          </Reveal>
 
           {/* ── Charts Row ── */}
           {/* Dosage slider */}
-          <div className="card slide-up delay-1" style={{ marginBottom: '1rem', padding: '1rem 1.5rem' }}>
+          <Reveal className="card" delay={150} style={{ marginBottom: '1rem', padding: '1rem 1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               <div style={{ fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>💊 Dose Simulation:</div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -552,9 +588,9 @@ export default function Home() {
                 </span>
               )}
             </div>
-          </div>
+          </Reveal>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+          <Reveal delay={200} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             <ADMEChart report={report} drug1Name={drug1?.name || 'Drug 1'} drug2Name={drug2?.name || 'Drug 2'} />
             <DosageToxicityChart report={report} drug1Name={drug1?.name || 'Drug 1'} drug2Name={drug2?.name || 'Drug 2'} multiplier={multiplier} />
             <RadarChart
@@ -563,11 +599,11 @@ export default function Home() {
               drug1Name={drug1?.name || 'Drug 1'}
               drug2Name={drug2?.name || 'Drug 2'}
             />
-          </div>
+          </Reveal>
 
           {/* ── Mechanisms ── */}
           {report.interactionMechanisms.length > 0 && (
-            <div className="report-section slide-up delay-1">
+            <Reveal className="report-section" delay={100}>
               <h3>⚙️ Interaction Mechanisms</h3>
               {report.interactionMechanisms.map((m, i) => (
                 <div key={i} className="mechanism-card">
@@ -576,12 +612,12 @@ export default function Home() {
                   <div style={{ fontSize: '0.78rem', color: 'var(--accent-primary)' }}>Evidence: {m.evidence}</div>
                 </div>
               ))}
-            </div>
+            </Reveal>
           )}
 
           {/* ── Clinical + ADME text ── */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
-            <div className="report-section slide-up delay-2">
+            <Reveal className="report-section" delay={100}>
               <h3>📋 Clinical Significance</h3>
               <p style={{ fontSize: '0.9rem', lineHeight: 1.7 }}>{report.clinicalSignificance}</p>
               {report.potentialConsequences.length > 0 && (
@@ -589,8 +625,8 @@ export default function Home() {
                   {report.potentialConsequences.map((c, i) => <li key={i} style={{ marginBottom: '0.3rem' }}>{c}</li>)}
                 </ul>
               )}
-            </div>
-            <div className="report-section slide-up delay-3">
+            </Reveal>
+            <Reveal className="report-section" delay={200}>
               <h3>🧬 ADME Analysis</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.88rem' }}>
                 <div><strong style={{ color: 'var(--text-dim)' }}>Absorption:</strong> {report.admeAnalysis.absorption}</div>
@@ -598,12 +634,12 @@ export default function Home() {
                 <div><strong style={{ color: 'var(--text-dim)' }}>Metabolism:</strong> {report.admeAnalysis.metabolism}</div>
                 <div><strong style={{ color: 'var(--text-dim)' }}>Excretion:</strong> {report.admeAnalysis.excretion}</div>
               </div>
-            </div>
+            </Reveal>
           </div>
 
           {/* ── Alternatives with Quick-Swap ── */}
           {report.alternatives.length > 0 && (
-            <div className="report-section slide-up delay-4" style={{ marginTop: '1.5rem' }}>
+            <Reveal className="report-section" delay={100} style={{ marginTop: '1.5rem' }}>
               <h3>💡 Suggested Alternatives</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
                 {isInteraction ? 'These drugs may carry lower interaction risk:' : 'Other options in the same therapeutic class:'}
@@ -624,12 +660,12 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            </div>
+            </Reveal>
           )}
 
           {/* ── Monitoring + Dose Risk ── */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
-            <div className="report-section slide-up delay-3">
+            <Reveal className="report-section" delay={100}>
               <h3>📊 Monitoring Required</h3>
               {report.monitoring.length > 0 ? report.monitoring.map((m, i) => (
                 <div key={i} className="monitoring-card">
@@ -638,8 +674,8 @@ export default function Home() {
                   <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{m.reason}</p>
                 </div>
               )) : <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>No specific monitoring required.</p>}
-            </div>
-            <div className="report-section slide-up delay-4">
+            </Reveal>
+            <Reveal className="report-section" delay={200}>
               <h3>💊 Dose Risk & Management</h3>
               <div style={{ background: 'var(--bg-hover)', padding: '1rem', borderRadius: '10px', fontSize: '0.88rem' }}>
                 {report.doseRisk.doseAdjustmentNeeded && (
@@ -654,11 +690,11 @@ export default function Home() {
                   <div style={{ marginTop: '0.15rem' }}>{report.doseRisk.safeCoAdminGuidance}</div>
                 </div>
               </div>
-            </div>
+            </Reveal>
           </div>
 
           {/* ── Demographics ── */}
-          <div className="report-section slide-up delay-5" style={{ marginTop: '1.5rem' }}>
+          <Reveal className="report-section" delay={100} style={{ marginTop: '1.5rem' }}>
             <h3>👥 Demographic Considerations</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem' }}>
               {[
@@ -674,15 +710,17 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </div>
+          </Reveal>
 
           {/* Evidence + Disclaimer */}
-          <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.12)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            <strong style={{ color: 'var(--accent-primary)' }}>Evidence Assessment:</strong> {report.evidenceAssessment}
-          </div>
-          <div style={{ marginTop: '0.75rem', padding: '0.85rem', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.12)', borderRadius: '10px', fontSize: '0.78rem', color: 'var(--text-dim)', textAlign: 'center' }}>
-            ⚕️ <strong>Disclaimer:</strong> AI-generated analysis for informational purposes only. Does not replace professional clinical judgment.
-          </div>
+          <Reveal delay={150}>
+            <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(99, 102, 241, 0.04)', border: '1px solid rgba(99, 102, 241, 0.12)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              <strong style={{ color: 'var(--accent-primary)' }}>Evidence Assessment:</strong> {report.evidenceAssessment}
+            </div>
+            <div style={{ marginTop: '0.75rem', padding: '0.85rem', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.12)', borderRadius: '10px', fontSize: '0.78rem', color: 'var(--text-dim)', textAlign: 'center' }}>
+              ⚕️ <strong>Disclaimer:</strong> AI-generated analysis for informational purposes only. Does not replace professional clinical judgment.
+            </div>
+          </Reveal>
 
           {/* New Analysis */}
           <div style={{ textAlign: 'center', marginTop: '1.5rem' }} className="print-hide">
