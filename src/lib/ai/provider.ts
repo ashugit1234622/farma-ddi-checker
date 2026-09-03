@@ -23,8 +23,8 @@ export class GroqProvider implements AIProvider {
       apiKey,
       baseURL: "https://api.groq.com/openai/v1",
     });
-    // Use llama3-70b-8192 as 3.1 is decommissioned and 3.3 may not be available on all tiers
-    this.modelId = process.env.AI_MODEL || "llama3-70b-8192";
+    // Use llama-3.1-8b-instant as the supported and available free-tier model
+    this.modelId = process.env.AI_MODEL || "llama-3.1-8b-instant";
   }
 
   async complete(system: string, user: string): Promise<string> {
