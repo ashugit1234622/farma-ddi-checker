@@ -666,7 +666,7 @@ export default function Home() {
                     {(['normal', 'high', 'elderly'] as const).map(mode => (
                       <button key={mode} onClick={() => setDoseMode(mode)}
                         className={`dose-pill ${doseMode === mode ? 'dose-pill-active' : ''}`}>
-                        {mode === 'normal' ? '<Scale className="icon" size={16} /> Normal' : mode === 'high' ? '<ArrowUp className="icon" size={16} /> High Dose' : '<User className="icon" size={16} /> Elderly'}
+                        {mode === 'normal' ? <><Scale className="icon" size={16} /> Normal</> : mode === 'high' ? <><ArrowUp className="icon" size={16} /> High Dose</> : <><User className="icon" size={16} /> Elderly</>}
                       </button>
                     ))}
                   </div>
