@@ -25,6 +25,7 @@ const fullLayerStyle: React.CSSProperties = {
   width: '100%',
   height: '100%',
   objectFit: 'cover',
+  objectPosition: 'center 40%', // Shift visible area up to crop the bottom edge
   pointerEvents: 'none',
   userSelect: 'none',
 };
@@ -35,6 +36,12 @@ export default function CinematicIntro() {
 
   const scrollCount = useRef(0);
   const lastScrollTime = useRef(0);
+  const stageRef = useRef<IntroState>(stage);
+
+  // Keep stageRef in sync so touch handlers always see current stage
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
 
   // --- LIFECYCLE: preload & init ---
   useEffect(() => {
@@ -151,15 +158,26 @@ export default function CinematicIntro() {
     window.addEventListener('wheel', handleScrollGesture, opts);
 
     let touchStartY = 0;
+    let touchStartTime = 0;
     const onTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY;
+      touchStartTime = Date.now();
     };
     const onTouchMove = (e: TouchEvent) => {
       if (e.cancelable) e.preventDefault();
     };
     const onTouchEnd = (e: TouchEvent) => {
-      if (e.cancelable) e.preventDefault();
       const dy = Math.abs(touchStartY - e.changedTouches[0].clientY);
+      const dt = Date.now() - touchStartTime;
+
+      // Short tap with minimal movement = pill click on mobile
+      if (dy < 15 && dt < 400 && stageRef.current === 'CLICKABLE_PILL') {
+        // Don't preventDefault here — let the tap register
+        setStage('CRACK_ANIMATION');
+        return;
+      }
+
+      if (e.cancelable) e.preventDefault();
       if (dy > 30) handleScrollGesture(e);
     };
 
@@ -242,6 +260,13 @@ export default function CinematicIntro() {
           alt="Click the pill"
           draggable={false}
           onClick={handlePillClick}
+          onTouchEnd={(e) => {
+            // Backup mobile tap handler directly on the element
+            if (stage === 'CLICKABLE_PILL') {
+              e.stopPropagation();
+              handlePillClick();
+            }
+          }}
           style={{
             ...fullLayerStyle,
             opacity: showBordered ? 1 : 0,
