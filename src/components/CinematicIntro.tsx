@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 // Configuration
 const INTRO_ENABLED = true;
-const PLAY_INTRO_ON_RETURNING_VISITS = false; // Only play once unless in dev mode
+const PLAY_INTRO_ON_RETURNING_VISITS = false;
 
 type IntroState =
   | 'LOADING'
@@ -17,64 +17,71 @@ type IntroState =
   | 'ZOOM_REVEAL'
   | 'COMPLETE';
 
+// Shared style for full-viewport image layers
+const fullLayerStyle: React.CSSProperties = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  pointerEvents: 'none',
+  userSelect: 'none',
+};
+
 export default function CinematicIntro() {
   const [stage, setStage] = useState<IntroState>('LOADING');
   const [isReducedMotion, setIsReducedMotion] = useState(false);
-  
-  // Track scroll attempts
+
   const scrollCount = useRef(0);
   const lastScrollTime = useRef(0);
 
-  // Initial sequence setup
+  // --- LIFECYCLE: preload & init ---
   useEffect(() => {
     if (!INTRO_ENABLED) {
       setStage('COMPLETE');
       return;
     }
 
-    // Check if returning visit
     const hasSeenIntro = sessionStorage.getItem('farma_intro_seen');
     const isDebug = window.location.search.includes('introDebug=true');
-    
+
     if (hasSeenIntro && !PLAY_INTRO_ON_RETURNING_VISITS && !isDebug) {
       setStage('COMPLETE');
       return;
     }
 
-    // Check reduced motion
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (mediaQuery.matches) {
-      setIsReducedMotion(true);
-    }
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (mq.matches) setIsReducedMotion(true);
 
     if (stage === 'LOADING') {
-      // Preload critical images to avoid flashes
-      const imgs = [
+      const srcs = [
         '/intro/only background.png',
         '/intro/pill without border.jpg',
         '/intro/pill with border.png',
         '/intro/pill crack image.png',
         '/intro/pill remove backgrund.png',
-        '/intro/pill crack burst image.png'
+        '/intro/pill crack burst image.png',
       ];
-      Promise.all(imgs.map(src => {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.src = src;
-          img.onload = resolve;
-          img.onerror = resolve; // Continue even if error
-        });
-      })).then(() => {
-        setStage('BACKGROUND');
-      });
+      Promise.all(
+        srcs.map(
+          (src) =>
+            new Promise<void>((res) => {
+              const img = new Image();
+              img.src = src;
+              img.onload = () => res();
+              img.onerror = () => res();
+            })
+        )
+      ).then(() => setStage('BACKGROUND'));
     }
   }, [stage]);
 
-  // Handle stage progressions for initial load
+  // --- LIFECYCLE: timed stage transitions ---
   useEffect(() => {
     if (stage === 'BACKGROUND') {
-      document.body.style.overflow = 'hidden'; // Lock scroll
-      const t = setTimeout(() => setStage('BORDERLESS_PILL'), 1000); // 1s wait for bg fade
+      document.body.style.overflow = 'hidden';
+      const t = setTimeout(() => setStage('BORDERLESS_PILL'), 1100);
       return () => clearTimeout(t);
     }
     if (stage === 'BORDERLESS_PILL') {
@@ -82,311 +89,292 @@ export default function CinematicIntro() {
       return () => clearTimeout(t);
     }
     if (stage === 'CRACK_ANIMATION') {
-      const t = setTimeout(() => setStage('TRANSPARENT_PILL'), 1000); // 1s pause after crack
+      const t = setTimeout(() => setStage('TRANSPARENT_PILL'), 1000);
       return () => clearTimeout(t);
     }
     if (stage === 'ZOOM_REVEAL') {
       sessionStorage.setItem('farma_intro_seen', 'true');
       const t = setTimeout(() => {
         setStage('COMPLETE');
-        document.body.style.overflow = ''; // Unlock scroll
-      }, 1500); // 1.5s dramatic zoom time matches CSS
+        document.body.style.overflow = '';
+      }, 1800);
       return () => clearTimeout(t);
     }
   }, [stage]);
 
-  // Clean up overflow on unmount
+  // --- CLEANUP ---
   useEffect(() => {
     return () => {
       document.body.style.overflow = '';
     };
   }, []);
 
-  // Handle pill click
+  // --- PILL CLICK ---
   const handlePillClick = () => {
     if (stage !== 'CLICKABLE_PILL') return;
-    
     if (isReducedMotion) {
-      // Skip straight to end for accessibility
       setStage('ZOOM_REVEAL');
     } else {
       setStage('CRACK_ANIMATION');
     }
   };
 
-  // Handle scroll events (debounced)
-  const handleScrollGesture = useCallback((e: Event) => {
-    if (stage === 'COMPLETE') return;
-    
-    // Always prevent default scroll behavior while intro is active
-    e.preventDefault(); 
-    
-    if (stage !== 'TRANSPARENT_PILL' && stage !== 'BURST_FADE_IN') {
-      return;
-    }
+  // --- SCROLL GESTURE (debounced) ---
+  const handleScrollGesture = useCallback(
+    (e: Event) => {
+      if (stage === 'COMPLETE') return;
+      e.preventDefault();
 
-    const now = Date.now();
-    if (now - lastScrollTime.current < 800) return; // 800ms debounce to prevent rapid firing
+      if (stage !== 'TRANSPARENT_PILL' && stage !== 'BURST_FADE_IN') return;
 
-    lastScrollTime.current = now;
-    scrollCount.current += 1;
+      const now = Date.now();
+      if (now - lastScrollTime.current < 800) return;
 
-    if (stage === 'TRANSPARENT_PILL' && scrollCount.current === 1) {
-      setStage('BURST_FADE_IN');
-    } else if (stage === 'BURST_FADE_IN' && scrollCount.current >= 2) {
-      setStage('ZOOM_REVEAL');
-    }
-  }, [stage]);
+      lastScrollTime.current = now;
+      scrollCount.current += 1;
 
-  // Attach wheel/touch listeners safely with passive: false so we can preventDefault
+      if (stage === 'TRANSPARENT_PILL' && scrollCount.current === 1) {
+        setStage('BURST_FADE_IN');
+      } else if (stage === 'BURST_FADE_IN' && scrollCount.current >= 2) {
+        setStage('ZOOM_REVEAL');
+      }
+    },
+    [stage]
+  );
+
+  // --- EVENT LISTENERS ---
   useEffect(() => {
     if (stage === 'COMPLETE') return;
 
-    // We must use passive: false to block default scrolling
-    const opts = { passive: false };
-    
-    // Desktop wheel
+    const opts = { passive: false } as AddEventListenerOptions;
+
     window.addEventListener('wheel', handleScrollGesture, opts);
-    
-    // Mobile touch
+
     let touchStartY = 0;
-    const handleTouchStart = (e: TouchEvent) => {
+    const onTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY;
     };
-    const handleTouchMove = (e: TouchEvent) => {
-      // Prevent scrolling if not complete
+    const onTouchMove = (e: TouchEvent) => {
       if (e.cancelable) e.preventDefault();
     };
-    const handleTouchEnd = (e: TouchEvent) => {
+    const onTouchEnd = (e: TouchEvent) => {
       if (e.cancelable) e.preventDefault();
-      const touchEndY = e.changedTouches[0].clientY;
-      // Require at least a 30px swipe to register as a scroll step
-      if (Math.abs(touchStartY - touchEndY) > 30) {
-        handleScrollGesture(e);
-      }
+      const dy = Math.abs(touchStartY - e.changedTouches[0].clientY);
+      if (dy > 30) handleScrollGesture(e);
     };
 
-    window.addEventListener('touchstart', handleTouchStart, opts);
-    window.addEventListener('touchmove', handleTouchMove, opts);
-    window.addEventListener('touchend', handleTouchEnd, opts);
-    
-    // Keyboard support (space, arrow keys, page up/down)
-    const handleKeyDown = (e: KeyboardEvent) => {
+    window.addEventListener('touchstart', onTouchStart, opts);
+    window.addEventListener('touchmove', onTouchMove, opts);
+    window.addEventListener('touchend', onTouchEnd, opts);
+
+    const onKeyDown = (e: KeyboardEvent) => {
       if (['Space', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp'].includes(e.code)) {
         handleScrollGesture(e);
       }
     };
-    window.addEventListener('keydown', handleKeyDown, opts);
+    window.addEventListener('keydown', onKeyDown, opts);
 
     return () => {
       window.removeEventListener('wheel', handleScrollGesture);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('keydown', onKeyDown);
     };
   }, [handleScrollGesture, stage]);
 
+  // --- BAIL EARLY ---
   if (stage === 'COMPLETE') return null;
 
-  // --- STYLING LOGIC ---
-
-  // Opacities based on stage
+  // --- VISIBILITY FLAGS ---
   const showBg = stage !== 'LOADING';
   const showBorderless = ['BORDERLESS_PILL', 'CLICKABLE_PILL'].includes(stage);
   const showBordered = stage === 'CLICKABLE_PILL';
   const showCracked = ['CRACK_ANIMATION', 'TRANSPARENT_PILL', 'BURST_FADE_IN', 'ZOOM_REVEAL'].includes(stage);
   const showTransparent = ['TRANSPARENT_PILL', 'BURST_FADE_IN', 'ZOOM_REVEAL'].includes(stage);
   const showBurst = ['BURST_FADE_IN', 'ZOOM_REVEAL'].includes(stage);
-
-  // Zoom logic
   const isZooming = stage === 'ZOOM_REVEAL';
 
   return (
-    <div 
-      className="intro-overlay"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 99999,
-        backgroundColor: '#000',
-        opacity: isZooming ? 0 : 1, // Entire container fades to reveal site behind
-        transition: 'opacity 1.5s cubic-bezier(0.8, 0, 0.2, 1)',
-        pointerEvents: isZooming ? 'none' : 'auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        touchAction: 'none'
-      }}
-    >
-      {/* 1. Base Background layer */}
-      <img 
-        src="/intro/only background.png" 
-        alt="Cinematic Background"
+    <>
+      <div
+        className="cinematic-intro-overlay"
         style={{
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          opacity: showBg ? 1 : 0,
-          transition: 'opacity 1s ease-out',
-          userSelect: 'none'
-        }}
-      />
-
-      {/* Pill Wrapper to handle scale/zoom */}
-      <div 
-        style={{
-          position: 'relative',
-          width: '45vw', // Responsive sizing
-          minWidth: '350px',
-          maxWidth: '600px',
-          aspectRatio: '1/1',
-          transform: isZooming ? 'scale(12) translateZ(0)' : 'scale(1) translateZ(0)',
-          transition: isZooming ? 'transform 1.5s cubic-bezier(0.8, 0, 0.2, 1)' : 'transform 0.5s ease',
-          willChange: 'transform'
+          position: 'fixed',
+          inset: 0,
+          zIndex: 99999,
+          overflow: 'hidden',
+          backgroundColor: '#0a6bcb',
+          opacity: isZooming ? 0 : 1,
+          transition: 'opacity 1.6s cubic-bezier(0.76, 0, 0.24, 1)',
+          pointerEvents: isZooming ? 'none' : 'auto',
+          touchAction: 'none',
         }}
       >
-        
-        {/* Layer 1: Borderless Pill */}
-        <img 
+        {/* ── Layer 0: Background ── */}
+        <img
+          src="/intro/only background.png"
+          alt=""
+          draggable={false}
+          style={{
+            ...fullLayerStyle,
+            opacity: showBg ? 1 : 0,
+            transition: 'opacity 1.1s ease-out',
+          }}
+        />
+
+        {/* ── Layer 1: Borderless pill (full-viewport, blends with bg) ── */}
+        <img
           src="/intro/pill without border.jpg"
           alt=""
+          draggable={false}
           style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
+            ...fullLayerStyle,
             opacity: showBorderless ? 1 : 0,
-            transform: showBorderless ? 'scale(1)' : 'scale(0.96)',
-            transition: 'opacity 0.9s ease, transform 0.9s ease-out',
-            pointerEvents: 'none',
-            userSelect: 'none'
+            transform: showBorderless ? 'scale(1) translateZ(0)' : 'scale(1.04) translateZ(0)',
+            transition: 'opacity 1s ease, transform 1s ease-out',
           }}
         />
 
-        {/* Layer 2: Bordered Pill (Clickable) */}
-        <img 
+        {/* ── Layer 2: Bordered pill (full-viewport, clickable) ── */}
+        <img
           src="/intro/pill with border.png"
-          alt="Interactive Pill"
+          alt="Click the pill"
+          draggable={false}
           onClick={handlePillClick}
           style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
+            ...fullLayerStyle,
             opacity: showBordered ? 1 : 0,
-            transition: 'opacity 0.6s ease',
+            transition: 'opacity 0.7s ease',
             cursor: showBordered ? 'pointer' : 'default',
             pointerEvents: showBordered ? 'auto' : 'none',
-            userSelect: 'none',
-            // Subtle breathing effect
-            animation: showBordered && !isReducedMotion ? 'pillBreathe 3s infinite ease-in-out' : 'none'
+            animation: showBordered && !isReducedMotion ? 'introBreath 3s infinite ease-in-out' : 'none',
           }}
         />
 
-        {/* Layer 3: Cracked Pill Background replacement */}
-        <img 
+        {/* ── Layer 3: Cracked pill ── */}
+        <img
           src="/intro/pill crack image.png"
           alt=""
+          draggable={false}
           style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
+            ...fullLayerStyle,
             opacity: showCracked ? 1 : 0,
-            transform: showCracked ? 'scale(1.03)' : 'scale(1)',
-            transition: 'opacity 0.15s ease-in, transform 0.15s ease-out', // Fast pop effect
-            pointerEvents: 'none',
-            userSelect: 'none'
+            transform: showCracked ? 'scale(1.02) translateZ(0)' : 'scale(1) translateZ(0)',
+            transition: 'opacity 0.18s ease-in, transform 0.18s ease-out',
           }}
         />
 
-        {/* Layer 4: Transparent Cracked Pill overlay */}
-        <img 
+        {/* ── Layer 4: Transparent pill overlay ── */}
+        <img
           src="/intro/pill remove backgrund.png"
           alt=""
+          draggable={false}
           style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
+            ...fullLayerStyle,
             opacity: showTransparent ? 1 : 0,
             transition: 'opacity 0.5s ease',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            zIndex: 10 
+            zIndex: 2,
           }}
         />
 
-        {/* Layer 5: Burst Image */}
-        <img 
+        {/* ── Layer 5: Burst image ── */}
+        <img
           src="/intro/pill crack burst image.png"
           alt=""
+          draggable={false}
           style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
+            ...fullLayerStyle,
             opacity: showBurst ? 1 : 0,
-            transition: 'opacity 0.8s ease',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            zIndex: 11
+            transform: isZooming ? 'scale(4) translateZ(0)' : 'scale(1) translateZ(0)',
+            transition: isZooming
+              ? 'opacity 0.8s ease, transform 1.6s cubic-bezier(0.76, 0, 0.24, 1)'
+              : 'opacity 0.8s ease, transform 0.5s ease',
+            zIndex: 3,
           }}
         />
-        
-        {/* Helper Text */}
-        <div style={{
-          position: 'absolute',
-          bottom: '-30px',
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          color: 'rgba(255, 255, 255, 0.4)',
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '0.85rem',
-          letterSpacing: '0.05em',
-          opacity: showBordered ? 1 : 0,
-          transition: 'opacity 0.6s ease',
-          pointerEvents: 'none',
-          userSelect: 'none'
-        }}>
-          Tap to begin
+
+        {/* ── Microcopy: "Tap to begin" ── */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '8vh',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            zIndex: 10,
+            opacity: showBordered ? 1 : 0,
+            transition: 'opacity 0.7s ease',
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}
+        >
+          <span
+            style={{
+              color: 'rgba(255,255,255,0.45)',
+              fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+              fontSize: 'clamp(0.7rem, 1.2vw, 0.9rem)',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              fontWeight: 300,
+            }}
+          >
+            Tap to begin
+          </span>
         </div>
-        
-        {/* Scroll Helper Text */}
-        <div style={{
-          position: 'absolute',
-          bottom: '-30px',
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          color: 'rgba(255, 255, 255, 0.4)',
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '0.85rem',
-          letterSpacing: '0.05em',
-          opacity: showTransparent && !isZooming ? 1 : 0,
-          transition: 'opacity 0.6s ease',
-          pointerEvents: 'none',
-          userSelect: 'none'
-        }}>
-          Scroll to explore
+
+        {/* ── Microcopy: "Scroll to explore" ── */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '8vh',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            zIndex: 10,
+            opacity: showTransparent && !isZooming ? 1 : 0,
+            transition: 'opacity 0.7s ease',
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}
+        >
+          <span
+            style={{
+              color: 'rgba(255,255,255,0.45)',
+              fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+              fontSize: 'clamp(0.7rem, 1.2vw, 0.9rem)',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              fontWeight: 300,
+            }}
+          >
+            Scroll to explore
+          </span>
+          {/* Animated scroll chevron */}
+          <div
+            style={{
+              marginTop: '12px',
+              animation: !isReducedMotion ? 'introChevron 2s infinite ease-in-out' : 'none',
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
         </div>
       </div>
-      
-      {/* Global styles for animation */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes pillBreathe {
-          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(255,255,255,0)); }
-          50% { transform: scale(1.015); filter: drop-shadow(0 0 15px rgba(255,255,255,0.1)); }
+
+      {/* ── Global keyframes ── */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes introBreath {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.008); }
+        }
+        @keyframes introChevron {
+          0%, 100% { transform: translateY(0); opacity: 0.4; }
+          50% { transform: translateY(6px); opacity: 1; }
         }
       `}} />
-    </div>
+    </>
   );
 }
