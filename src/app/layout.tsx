@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: 'Check drug-drug interactions with AI-powered analysis, ADME comparison charts, toxicity profiles, and clinical recommendations based on KD Tripathi pharmacology.',
 };
 
+import CinematicIntro from '@/components/CinematicIntro';
+
 export default function RootLayout({
   children,
 }: {
@@ -14,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <CinematicIntro />
         <header className="header">
           <div className="logo">
             <span>💊 Farma</span> DDI Checker
