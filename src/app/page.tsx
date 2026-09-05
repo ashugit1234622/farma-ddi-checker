@@ -463,10 +463,13 @@ function DrugSearchBox({ label, drug, onSelect, onClear, accentColor }: {
   );
 }
 
+import ScrollIntro from '../components/ScrollIntro';
+
 /* ══════════════════════════════════════════════════════
    MAIN PAGE
 ══════════════════════════════════════════════════════ */
 export default function Home() {
+  const [showIntro, setShowIntro] = useState(false);
   const [drug1, setDrug1] = useState<DrugSearchResult | null>(null);
   const [drug2, setDrug2] = useState<DrugSearchResult | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -476,6 +479,22 @@ export default function Home() {
   const [doseMode, setDoseMode] = useState<'normal' | 'high' | 'elderly'>('normal');
   const [activeTab, setActiveTab] = useState<'overview' | 'adme' | 'toxicity' | 'alternatives'>('overview');
   const reportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Only run in browser
+    if (typeof window !== 'undefined') {
+      const hasSeen = sessionStorage.getItem('farma_scroll_intro');
+      if (!hasSeen) {
+        setShowIntro(true);
+      }
+    }
+  }, []);
+
+  const handleIntroComplete = useCallback(() => {
+    sessionStorage.setItem('farma_scroll_intro', 'true');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setShowIntro(false);
+  }, []);
 
   // Stepper animation
   useEffect(() => {
@@ -549,15 +568,25 @@ export default function Home() {
   ];
 
   return (
-    <div style={{ paddingBottom: '4rem' }}>
-      {/* Hero */}
-      <div style={{ textAlign: 'center', marginBottom: '2.5rem', paddingTop: '1.5rem' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}><Pill size={48} style={{ color: 'var(--accent-primary)', filter: 'drop-shadow(0 0 12px var(--accent-glow))' }} /></div>
-        <h1 style={{ color: 'var(--text-main)', marginBottom: '0.5rem' }}>Drug-Drug Interaction Checker</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '550px', margin: '0 auto' }}>
-          Select two drugs to check for interactions, view ADME & toxicity charts, and get AI-powered clinical analysis.
-        </p>
-      </div>
+    <>
+      {showIntro && <ScrollIntro onComplete={handleIntroComplete} />}
+      
+      {/* Spacer for intro scrolling */}
+      {showIntro && <div style={{ height: '250vh' }} />}
+
+      <div style={{
+        paddingBottom: '4rem',
+        // When intro is running, lock the main app in place (but hidden) so the real inputs are positioned correctly for the morph
+        visibility: showIntro ? 'hidden' : 'visible',
+      }}>
+        {/* Hero */}
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem', paddingTop: '1.5rem' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}><Pill size={48} style={{ color: 'var(--accent-primary)', filter: 'drop-shadow(0 0 12px var(--accent-glow))' }} /></div>
+          <h1 style={{ color: 'var(--text-main)', marginBottom: '0.5rem' }}>Drug-Drug Interaction Checker</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '550px', margin: '0 auto' }}>
+            Select two drugs to check for interactions, view ADME & toxicity charts, and get AI-powered clinical analysis.
+          </p>
+        </div>
 
       {/* Drug Selection */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -838,5 +867,6 @@ export default function Home() {
         </div>
       )}
     </div>
+    </>
   );
 }

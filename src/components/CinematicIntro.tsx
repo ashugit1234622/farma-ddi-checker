@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 // Configuration
-const INTRO_ENABLED = true;
+const INTRO_ENABLED = false; // Disabled per user request, but code remains
 const PLAY_INTRO_ON_RETURNING_VISITS = false;
 
 type IntroState =
