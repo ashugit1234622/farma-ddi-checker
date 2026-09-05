@@ -99,9 +99,14 @@ export default function ScrollIntro({ onComplete }: ScrollIntroProps) {
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          // We assume a spacer of 300vh, so scrollable height is roughly 200vh
-          const maxScroll = window.innerHeight * 2.5; 
+          // Calculate the true maximum scrollable distance
+          const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
           let p = Math.min(Math.max(window.scrollY / maxScroll, 0), 1);
+          
+          // Browser subpixel rounding safety net
+          if (p > 0.99 || window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+            p = 1.0;
+          }
           
           setProgress(p);
 
