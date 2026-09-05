@@ -140,49 +140,83 @@ export default function ScrollIntro({ onComplete }: ScrollIntroProps) {
   const morphProgress = Math.max(0, (progress - 0.7) / 0.3); // 0 to 1
   const separationProgress = Math.max(0, Math.min(1, (progress - 0.2) / 0.5));
   
-  const getTransform = (side: 'left' | 'right') => {
-    const dir = side === 'left' ? -1 : 1;
-    
-    let x = 0;
-    let scale = 1 + (Math.min(progress, 0.2) / 0.2) * 0.2; // Scale up to 1.2
-    
-    if (progress > 0.2) {
-      x = dir * (separationProgress * 25); // vw
-    }
-    
-    if (isMorphing) {
-      x = dir * (25 + morphProgress * 5);
-      scale = 1.2 - morphProgress * 0.2; // Return to scale 1
-    }
+  const [boxRects, setBoxRects] = useState<{ left: DOMRect, right: DOMRect } | null>(null);
 
-    return `translateX(${x}vw) scale(${scale})`;
-  };
+  useEffect(() => {
+    const updateRects = () => {
+      const box1 = document.getElementById('drug-box-1');
+      const box2 = document.getElementById('drug-box-2');
+      if (box1 && box2) {
+        setBoxRects({
+          left: box1.getBoundingClientRect(),
+          right: box2.getBoundingClientRect(),
+        });
+      }
+    };
+    updateRects();
+    window.addEventListener('resize', updateRects);
+    return () => window.removeEventListener('resize', updateRects);
+  }, []);
 
   const getStyles = (side: 'left' | 'right'): React.CSSProperties => {
-    // Base Pill Half styles
-    const w = 60 + (morphProgress * 220); // morphs to ~280px wide
-    const h = 240 - (morphProgress * 60); // morphs to ~180px tall
+    const cx = typeof window !== 'undefined' ? window.innerWidth / 2 : 500;
+    const cy = typeof window !== 'undefined' ? window.innerHeight / 2 : 500;
+    
+    const baseW = 60;
+    const baseH = 240;
+    const earlyScale = 1 + (Math.min(progress, 0.2) / 0.2) * 0.2; 
+    
+    let currentW = baseW * earlyScale;
+    let currentH = baseH * earlyScale;
+    
+    let currentX = side === 'left' ? cx - currentW : cx;
+    let currentY = cy - currentH / 2;
+    
+    if (progress > 0.2) {
+      const dir = side === 'left' ? -1 : 1;
+      const sepVw = separationProgress * (window.innerWidth * 0.25);
+      currentX += dir * sepVw;
+    }
     
     const baseRadius = 120;
-    const targetRadius = 16;
-    const r = baseRadius - (morphProgress * (baseRadius - targetRadius));
-
+    let currentRadius = baseRadius;
+    
+    if (isMorphing && boxRects) {
+      const target = side === 'left' ? boxRects.left : boxRects.right;
+      
+      currentX = currentX + (target.left - currentX) * morphProgress;
+      currentY = currentY + (target.top - currentY) * morphProgress;
+      currentW = currentW + (target.width - currentW) * morphProgress;
+      currentH = currentH + (target.height - currentH) * morphProgress;
+      
+      const targetRadius = 16; // 1rem approx
+      currentRadius = baseRadius - (morphProgress * (baseRadius - targetRadius));
+    } else if (isMorphing) {
+      // Fallback
+      const fallbackW = 60 + (morphProgress * 220);
+      const fallbackH = 240 - (morphProgress * 60);
+      currentRadius = baseRadius - (morphProgress * (baseRadius - 16));
+      const dir = side === 'left' ? -1 : 1;
+      currentX = side === 'left' ? cx - fallbackW + dir * (window.innerWidth * 0.25 + morphProgress * 50) : cx + dir * (window.innerWidth * 0.25 + morphProgress * 50);
+      currentY = cy - fallbackH / 2;
+      currentW = fallbackW;
+      currentH = fallbackH;
+    }
+    
     return {
       position: 'absolute',
-      top: '50%',
-      left: side === 'left' ? `calc(50% - ${w}px)` : '50%',
-      width: `${w}px`,
-      height: `${h}px`,
-      transform: `translateY(-50%) ${getTransform(side)}`,
-      transformOrigin: side === 'left' ? 'right center' : 'left center',
-      borderRadius: side === 'left' ? `${r}px 0 0 ${r}px` : `0 ${r}px ${r}px 0`,
+      top: currentY,
+      left: currentX,
+      width: currentW,
+      height: currentH,
+      borderRadius: side === 'left' ? `${currentRadius}px 0 0 ${currentRadius}px` : `0 ${currentRadius}px ${currentRadius}px 0`,
       backgroundColor: '#ffffff',
       boxShadow: isMorphing ? '0 4px 20px rgba(0,0,0,0.1)' : 'inset -10px 0 20px rgba(0,0,0,0.1), 0 10px 30px rgba(0,0,0,0.2)',
       overflow: 'hidden',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      willChange: 'transform, width, height, border-radius'
+      willChange: 'top, left, width, height, border-radius'
     };
   };
 

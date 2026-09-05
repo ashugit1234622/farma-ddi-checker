@@ -321,7 +321,8 @@ function handlePrint() {
 /* ══════════════════════════════════════════════════════
    DRUG SEARCH BOX (shared)
 ══════════════════════════════════════════════════════ */
-function DrugSearchBox({ label, drug, onSelect, onClear, accentColor }: {
+function DrugSearchBox({ id, label, drug, onSelect, onClear, accentColor }: {
+  id?: string;
   label: string;
   drug: DrugSearchResult | null;
   onSelect: (d: DrugSearchResult) => void;
@@ -362,7 +363,7 @@ function DrugSearchBox({ label, drug, onSelect, onClear, accentColor }: {
   };
 
   return (
-    <div className="card" style={{ flex: '1 1 280px', minHeight: '180px' }}>
+    <div id={id} className="card" style={{ flex: '1 1 280px', minHeight: '180px' }}>
       <h3 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 500 }}>{label}</h3>
       {!drug ? (
         <div style={{ position: 'relative' }}>
@@ -572,12 +573,14 @@ export default function Home() {
       {showIntro && <ScrollIntro onComplete={handleIntroComplete} />}
       
       {/* Spacer for intro scrolling */}
-      {showIntro && <div style={{ height: '250vh' }} />}
+      {showIntro && <div style={{ position: 'absolute', top: 0, left: 0, width: '1px', height: '300vh' }} />}
 
       <div style={{
         paddingBottom: '4rem',
-        // When intro is running, lock the main app in place (but hidden) so the real inputs are positioned correctly for the morph
+        // When intro is running, lock the main app in place at top 0 (but hidden) so the real inputs are positioned correctly for the morph
         visibility: showIntro ? 'hidden' : 'visible',
+        position: showIntro ? 'fixed' : 'relative',
+        top: 0, left: 0, width: '100%', height: showIntro ? '100vh' : 'auto', overflow: showIntro ? 'hidden' : 'visible'
       }}>
         {/* Hero */}
         <div style={{ textAlign: 'center', marginBottom: '2.5rem', paddingTop: '1.5rem' }}>
@@ -591,6 +594,7 @@ export default function Home() {
       {/* Drug Selection */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <DrugSearchBox
+          id="drug-box-1"
           label="Drug 1" drug={drug1} accentColor="var(--chart-drug1)"
           onSelect={d => { setDrug1(d); setReport(null); }}
           onClear={() => { setDrug1(null); setReport(null); }}
@@ -604,6 +608,7 @@ export default function Home() {
         </div>
 
         <DrugSearchBox
+          id="drug-box-2"
           label="Drug 2" drug={drug2} accentColor="var(--chart-drug2)"
           onSelect={d => { setDrug2(d); setReport(null); }}
           onClear={() => { setDrug2(null); setReport(null); }}
