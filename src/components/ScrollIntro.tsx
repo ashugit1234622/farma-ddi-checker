@@ -22,20 +22,22 @@ export default function ScrollIntro({ onComplete }: ScrollIntroProps) {
     size: number;
     rotation: number;
     vrot: number;
+    color: string;
   }>>([]);
 
   const spawnParticles = (x: number, y: number, amount: number) => {
     for (let i = 0; i < amount; i++) {
       particlesRef.current.push({
         x,
-        y: y + (Math.random() - 0.5) * 80, // Spread along the vertical crack
-        vx: (Math.random() - 0.5) * 4,
-        vy: (Math.random() - 0.5) * 4 - 2, // Slight upward initial velocity
+        y: y + (Math.random() - 0.5) * 100, // Spread along the vertical crack
+        vx: (Math.random() - 0.5) * 12, // More horizontal velocity for explosion
+        vy: (Math.random() - 0.5) * 12 - 4, // Upward burst
         life: 0,
-        maxLife: 60 + Math.random() * 40,
-        size: 2 + Math.random() * 4,
+        maxLife: 60 + Math.random() * 60,
+        size: 2 + Math.random() * 6,
         rotation: Math.random() * 360,
-        vrot: (Math.random() - 0.5) * 10
+        vrot: (Math.random() - 0.5) * 15,
+        color: Math.random() > 0.5 ? 'rgba(255, 255, 255, ' : 'rgba(220, 240, 255, '
       });
     }
   };
@@ -75,9 +77,9 @@ export default function ScrollIntro({ onComplete }: ScrollIntroProps) {
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rotation * Math.PI / 180);
-        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-        ctx.shadowColor = 'rgba(255,255,255,0.5)';
-        ctx.shadowBlur = 4;
+        ctx.fillStyle = p.color + opacity + ')';
+        ctx.shadowColor = p.color.replace('rgba', 'rgb').split(',').slice(0,3).join(',') + ')';
+        ctx.shadowBlur = 8;
         ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
         ctx.restore();
       }
@@ -110,10 +112,12 @@ export default function ScrollIntro({ onComplete }: ScrollIntroProps) {
           
           setProgress(p);
 
-          // Spawn particles when passing the crack threshold (e.g., 0.2 to 0.4)
-          if (p > 0.25 && p < 0.45 && p > lastProgress) {
+          // Spawn particles aggressively when the crack opens and splits
+          if (p > 0.15 && p < 0.6 && p > lastProgress) {
             // Spawn intensity based on scroll speed
-            spawnParticles(window.innerWidth / 2, window.innerHeight / 2, 2 + Math.random() * 3);
+            const speed = p - lastProgress;
+            const amount = Math.floor(speed * 1000) + (p > 0.25 && p < 0.35 ? 8 : 2);
+            spawnParticles(window.innerWidth / 2, window.innerHeight / 2, amount);
           }
           
           lastProgress = p;
@@ -138,7 +142,11 @@ export default function ScrollIntro({ onComplete }: ScrollIntroProps) {
   // Derived state for animation phases
   const isMorphing = progress > 0.7;
   const morphProgress = Math.max(0, (progress - 0.7) / 0.3); // 0 to 1
-  const separationProgress = Math.max(0, Math.min(1, (progress - 0.2) / 0.5));
+  
+  // Crack phase: 0.15 to 0.3 -> crack opens slightly
+  const crackProgress = Math.max(0, Math.min(1, (progress - 0.15) / 0.15));
+  // Split phase: 0.3 to 0.7 -> fully splits apart
+  const splitProgress = Math.max(0, Math.min(1, (progress - 0.3) / 0.4));
   
   const [boxRects, setBoxRects] = useState<{ left: DOMRect, right: DOMRect } | null>(null);
 
@@ -162,9 +170,10 @@ export default function ScrollIntro({ onComplete }: ScrollIntroProps) {
     const cx = typeof window !== 'undefined' ? window.innerWidth / 2 : 500;
     const cy = typeof window !== 'undefined' ? window.innerHeight / 2 : 500;
     
-    const baseW = 60;
-    const baseH = 240;
-    const earlyScale = 1 + (Math.min(progress, 0.2) / 0.2) * 0.2; 
+    // Horizontal Pill Dimensions
+    const baseW = 120;
+    const baseH = 120;
+    const earlyScale = 1 + (Math.min(progress, 0.15) / 0.15) * 0.2; // Scale up to 1.2
     
     let currentW = baseW * earlyScale;
     let currentH = baseH * earlyScale;
@@ -172,13 +181,18 @@ export default function ScrollIntro({ onComplete }: ScrollIntroProps) {
     let currentX = side === 'left' ? cx - currentW : cx;
     let currentY = cy - currentH / 2;
     
-    if (progress > 0.2) {
-      const dir = side === 'left' ? -1 : 1;
-      const sepVw = separationProgress * (window.innerWidth * 0.25);
-      currentX += dir * sepVw;
+    // Apply crack and split separation
+    const dir = side === 'left' ? -1 : 1;
+    let sepDist = 0;
+    if (crackProgress > 0) {
+      sepDist += crackProgress * 10; // Crack opens up to 20px (10px each side)
     }
+    if (splitProgress > 0) {
+      sepDist += splitProgress * (window.innerWidth * 0.22); // Full split
+    }
+    currentX += dir * sepDist;
     
-    const baseRadius = 120;
+    const baseRadius = 60;
     let currentRadius = baseRadius;
     
     if (isMorphing && boxRects) {
@@ -192,12 +206,11 @@ export default function ScrollIntro({ onComplete }: ScrollIntroProps) {
       const targetRadius = 16; // 1rem approx
       currentRadius = baseRadius - (morphProgress * (baseRadius - targetRadius));
     } else if (isMorphing) {
-      // Fallback
-      const fallbackW = 60 + (morphProgress * 220);
-      const fallbackH = 240 - (morphProgress * 60);
+      // Fallback if elements not found
+      const fallbackW = 120 + (morphProgress * 160);
+      const fallbackH = 120 + (morphProgress * 60);
       currentRadius = baseRadius - (morphProgress * (baseRadius - 16));
-      const dir = side === 'left' ? -1 : 1;
-      currentX = side === 'left' ? cx - fallbackW + dir * (window.innerWidth * 0.25 + morphProgress * 50) : cx + dir * (window.innerWidth * 0.25 + morphProgress * 50);
+      currentX = side === 'left' ? cx - fallbackW + dir * (window.innerWidth * 0.22 + morphProgress * 50) : cx + dir * (window.innerWidth * 0.22 + morphProgress * 50);
       currentY = cy - fallbackH / 2;
       currentW = fallbackW;
       currentH = fallbackH;
@@ -216,7 +229,10 @@ export default function ScrollIntro({ onComplete }: ScrollIntroProps) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      willChange: 'top, left, width, height, border-radius'
+      willChange: 'top, left, width, height, border-radius',
+      // Add jagged edge texture/clip-path for the crack? We will use a border effect instead.
+      borderRight: side === 'left' && !isMorphing && crackProgress > 0 ? '2px dashed rgba(200,200,200,0.5)' : 'none',
+      borderLeft: side === 'right' && !isMorphing && crackProgress > 0 ? '2px dashed rgba(200,200,200,0.5)' : 'none',
     };
   };
 
