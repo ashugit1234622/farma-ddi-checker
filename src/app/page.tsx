@@ -484,15 +484,11 @@ export default function Home() {
   useEffect(() => {
     // Only run in browser
     if (typeof window !== 'undefined') {
-      const hasSeen = sessionStorage.getItem('farma_scroll_intro');
-      if (!hasSeen) {
-        setShowIntro(true);
-      }
+      setShowIntro(true);
     }
   }, []);
 
   const handleIntroComplete = useCallback(() => {
-    sessionStorage.setItem('farma_scroll_intro', 'true');
     window.scrollTo({ top: 0, behavior: 'instant' });
     setShowIntro(false);
   }, []);
