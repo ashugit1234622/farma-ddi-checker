@@ -465,6 +465,7 @@ function DrugSearchBox({ id, label, drug, onSelect, onClear, accentColor }: {
 }
 
 import ScrollIntro from '../components/ScrollIntro';
+import AnalysisScanner from '../components/AnalysisScanner';
 
 /* ══════════════════════════════════════════════════════
    MAIN PAGE
@@ -566,6 +567,7 @@ export default function Home() {
 
   return (
     <>
+      <AnalysisScanner isAnalyzing={analyzing} drug1={drug1} drug2={drug2} currentStepText={steps[stepIndex]} />
       {showIntro && <ScrollIntro onComplete={handleIntroComplete} />}
       
       {/* Spacer for intro scrolling */}
