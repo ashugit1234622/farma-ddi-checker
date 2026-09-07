@@ -151,7 +151,7 @@ export default function PrintSummary({ report, drug1, drug2 }: PrintSummaryProps
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
           <div style={{
             padding: '8px 16px',
-            border: \`2px solid \${color}\`,
+            border: `2px solid ${color}`,
             borderRadius: '20px',
             fontWeight: 'bold',
             textTransform: 'uppercase',
@@ -194,10 +194,10 @@ export default function PrintSummary({ report, drug1, drug2 }: PrintSummaryProps
               <div style={{ width: '80px', textTransform: 'capitalize', fontSize: '10pt', fontWeight: 'bold' }}>{p}</div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <div className="static-bar-track">
-                  <div className="static-bar-fill d1" style={{ width: \`\${report.admeScores.drug1[p as keyof typeof report.admeScores.drug1]}%\` }} />
+                  <div className="static-bar-fill d1" style={{ width: `${report.admeScores.drug1[p as keyof typeof report.admeScores.drug1]}%` }} />
                 </div>
                 <div className="static-bar-track">
-                  <div className="static-bar-fill d2" style={{ width: \`\${report.admeScores.drug2[p as keyof typeof report.admeScores.drug2]}%\` }} />
+                  <div className="static-bar-fill d2" style={{ width: `${report.admeScores.drug2[p as keyof typeof report.admeScores.drug2]}%` }} />
                 </div>
               </div>
             </div>
@@ -226,10 +226,10 @@ export default function PrintSummary({ report, drug1, drug2 }: PrintSummaryProps
                   <div style={{ width: '60px', textTransform: 'capitalize', fontSize: '10pt', fontWeight: 'bold' }}>{p}</div>
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div className="static-bar-track">
-                      <div className="static-bar-fill" style={{ width: \`\${v1}%\`, background: scoreToColor(v1) }} />
+                      <div className="static-bar-fill" style={{ width: `${v1}%`, background: scoreToColor(v1) }} />
                     </div>
                     <div className="static-bar-track">
-                      <div className="static-bar-fill" style={{ width: \`\${v2}%\`, background: scoreToColor(v2) }} />
+                      <div className="static-bar-fill" style={{ width: `${v2}%`, background: scoreToColor(v2) }} />
                     </div>
                   </div>
                 </div>
