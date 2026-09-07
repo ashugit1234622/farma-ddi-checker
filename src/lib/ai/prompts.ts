@@ -45,7 +45,7 @@ For toxicityScores: Score each organ system 0-100:
 - neuro: Neurological toxicity risk (0 = none, 100 = severe neurotoxicity)
 - hemato: Blood/hematological toxicity risk (0 = none, 100 = severe hematotoxicity)
 
-Translate qualitative descriptors: "low" ≈ 10-25, "moderate" ≈ 40-60, "high" ≈ 70-90.
+CRITICAL SCORING INSTRUCTION: Do NOT output all zeroes for toxicity or ADME scores. You MUST accurately reflect the severity of the interaction. If a combination causes high risk (e.g. major/contraindicated), the relevant organ toxicity scores MUST be high (70-100). Reflect the baseline toxicity of the drug AND scale it up based on the interaction severity. Translate qualitative descriptors into numbers: "low" ≈ 15-30, "moderate" ≈ 40-65, "high" ≈ 75-100.
 
 RESPONSE FORMAT:
 Return a JSON object matching the exact schema provided. Do not add extra fields.
