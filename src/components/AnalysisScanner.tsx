@@ -169,6 +169,8 @@ export default function AnalysisScanner({ isAnalyzing, drug1, drug2, currentStep
               justifyContent: 'center',
               width: '32px',
               height: '32px',
+              lineHeight: 0,
+              paddingBottom: '2px', // optical adjustment for + character
               borderRadius: '50%',
               background: 'rgba(255,255,255,0.03)',
               border: '1px solid rgba(255,255,255,0.1)'

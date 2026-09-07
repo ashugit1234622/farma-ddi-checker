@@ -466,6 +466,7 @@ function DrugSearchBox({ id, label, drug, onSelect, onClear, accentColor }: {
 
 import ScrollIntro from '../components/ScrollIntro';
 import AnalysisScanner from '../components/AnalysisScanner';
+import PrintSummary from '../components/PrintSummary';
 
 /* ══════════════════════════════════════════════════════
    MAIN PAGE
@@ -573,7 +574,7 @@ export default function Home() {
       {/* Spacer for intro scrolling */}
       {showIntro && <div style={{ position: 'absolute', top: 0, left: 0, width: '1px', height: '300vh' }} />}
 
-      <div style={{
+      <div className="print-hide" style={{
         paddingBottom: '4rem',
         // When intro is running, lock the main app in place at top 0 (but hidden) so the real inputs are positioned correctly for the morph
         visibility: showIntro ? 'hidden' : 'visible',
@@ -870,6 +871,7 @@ export default function Home() {
         </div>
       )}
     </div>
+    <PrintSummary report={report} drug1={drug1} drug2={drug2} />
     </>
   );
 }
