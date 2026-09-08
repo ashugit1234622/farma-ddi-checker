@@ -214,17 +214,22 @@ export default function MedCheck({ onClose }: { onClose: () => void }) {
                       <Upload size={48} className="text-muted mb-2" />
                       <span style={{ fontWeight: 500 }}>Upload Barcode Image</span>
                       <span className="text-muted" style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-                        {isMobile ? 'Tap to choose photo' : 'Drag & drop or click to browse'}
+                        {isMobile ? 'Tap to choose from gallery or files' : 'Drag & drop or click to browse'}
                       </span>
                     </div>
                   )}
                 </div>
               )}
 
+              {/* 
+                NOTE: Do NOT add capture="environment" or capture="camera" here.
+                On mobile, omitting `capture` forces the OS native file picker sheet
+                (showing Gallery, Files, etc.) instead of launching the camera directly.
+                The camera is only launched via the explicit "Live Camera Scan" button.
+              */}
               <input 
                 type="file" 
-                accept="image/*" 
-                capture="environment" 
+                accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/bmp"
                 ref={fileInputRef} 
                 style={{ display: 'none' }} 
                 onChange={handleFileUpload}

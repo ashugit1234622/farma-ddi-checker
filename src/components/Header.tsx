@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Menu, ScanBarcode, X } from 'lucide-react';
 import MedCheck from './MedCheck';
+import PWAInstallButton from './PWAInstallButton';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,6 +33,8 @@ export default function Header() {
             Powered by Gemini AI
           </span>
           
+          <PWAInstallButton />
+
           <div className="hamburger-container print-hide" style={{ position: 'relative' }}>
             <button 
               onClick={toggleMenu}
