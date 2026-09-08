@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { DDIAnalysis } from "../lib/ai/schemas";
 import { Pill, Microscope, AlertTriangle, CheckCircle, ArrowRightLeft, XCircle, AlertOctagon, AlertCircle, FileText, Scale, ArrowUp, User, ClipboardList, Settings, Users, Dna, BarChart, Lightbulb, Beaker } from "lucide-react";
+import OrganToxicityAnatomy from '../components/OrganToxicityAnatomy';
 
 interface DrugSearchResult {
   id: string;
@@ -785,6 +786,11 @@ export default function Home() {
                   d2={{ ...report.toxicityScores.drug2 }}
                   drug1Name={drug1?.name || 'Drug 1'}
                   drug2Name={drug2?.name || 'Drug 2'}
+                />
+                <OrganToxicityAnatomy 
+                  report={report} 
+                  drug1Name={drug1?.name || 'Drug 1'} 
+                  drug2Name={drug2?.name || 'Drug 2'} 
                 />
               </Reveal>
 
