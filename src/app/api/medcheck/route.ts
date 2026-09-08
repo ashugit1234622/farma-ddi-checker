@@ -18,9 +18,30 @@ interface MedicineData {
   source?: string;
 }
 
-// ─── Helper: clean barcode (strip spaces/dashes) ─────────────────────────────
+// ─── Server-side cache: same barcode → same result every time ─────────────────
+// This eliminates Gemini non-determinism for repeated scans of the same barcode.
+const barcodeCache = new Map<string, MedicineData | { error: string; confidence: string }>();
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
 function cleanBarcode(raw: string): string {
   return raw.replace(/[\s\-]/g, "").trim();
+}
+
+// ─── Country prefix hints for barcode origin ──────────────────────────────────
+function getCountryHint(barcode: string): string {
+  const prefix = parseInt(barcode.substring(0, 3));
+  if (prefix >= 600 && prefix <= 609) return "South Africa";
+  if (prefix >= 890 && prefix <= 899) return "India";
+  if (prefix >= 300 && prefix <= 379) return "France";
+  if (prefix >= 400 && prefix <= 440) return "Germany";
+  if (prefix >= 450 && prefix <= 459) return "Japan";
+  if (prefix >= 500 && prefix <= 509) return "United Kingdom";
+  if (prefix >= 700 && prefix <= 709) return "Norway";
+  if (prefix >= 730 && prefix <= 739) return "Sweden";
+  if (prefix >= 800 && prefix <= 839) return "Italy";
+  if (prefix >= 840 && prefix <= 849) return "Spain";
+  if (barcode.length <= 12) return "United States (UPC)";
+  return "Unknown region";
 }
 
 // ─── Strategy 1: openFDA NDC / UPC lookup ────────────────────────────────────
@@ -73,19 +94,18 @@ async function tryOpenFDA(barcode: string): Promise<MedicineData | null> {
   return null;
 }
 
-// ─── Strategy 2: Open Food Facts / Open Products Facts (international EAN) ───
-async function tryOpenFoodFacts(barcode: string): Promise<MedicineData | null> {
-  // Try both Open Food Facts and Open Beauty Facts (sometimes has OTC meds)
+// ─── Strategy 2: Open Products / Food Facts (international EAN) ───────────────
+async function tryOpenProductsFacts(barcode: string): Promise<MedicineData | null> {
   const endpoints = [
+    `https://world.openproductsfacts.org/api/v2/product/${barcode}.json`,
     `https://world.openfoodfacts.org/api/v2/product/${barcode}.json`,
     `https://world.openbeautyfacts.org/api/v2/product/${barcode}.json`,
-    `https://world.openproductsfacts.org/api/v2/product/${barcode}.json`,
   ];
 
   for (const url of endpoints) {
     try {
       const res = await fetch(url, {
-        headers: { "User-Agent": "FarmaDDIChecker/1.0 (medicine safety app)" },
+        headers: { "User-Agent": "FarmaDDIChecker/1.0" },
         signal: AbortSignal.timeout(6000),
       });
       if (!res.ok) continue;
@@ -96,34 +116,29 @@ async function tryOpenFoodFacts(barcode: string): Promise<MedicineData | null> {
       const productName = p.product_name_en || p.product_name || "";
       const brandName = p.brands || "";
       const genericName = p.generic_name_en || p.generic_name || "";
-
       if (!productName && !brandName) continue;
 
-      // Filter: skip clearly non-medicine products (food without medicine keywords)
-      const lowerName = (productName + genericName).toLowerCase();
+      const lowerName = (productName + " " + genericName).toLowerCase();
       const medicineKeywords = [
         "tablet", "capsule", "syrup", "suspension", "injection", "cream", "ointment",
         "gel", "drops", "inhaler", "patch", "suppository", "solution", "mg", "ml",
         "paracetamol", "ibuprofen", "amoxicillin", "aspirin", "cetirizine", "metformin",
         "atorvastatin", "omeprazole", "antibiotic", "analgesic", "antifungal",
-        "medicine", "pharmaceutical", "pharma", "drug", "medication"
+        "medicine", "pharmaceutical", "pharma", "drug", "medication", "acetaminophen",
       ];
       const isMedLike = medicineKeywords.some(k => lowerName.includes(k));
-      if (!isMedLike && !p.categories_tags?.some((c: string) =>
-        c.includes("medication") || c.includes("pharmaceutical") || c.includes("medicine"))) {
-        continue;
-      }
+      const hasMedCategory = p.categories_tags?.some((c: string) =>
+        c.includes("medication") || c.includes("pharmaceutical") || c.includes("medicine"));
 
-      const manufacturer = p.manufacturers || p.brands || "";
-      const quantity = p.quantity || "";
+      if (!isMedLike && !hasMedCategory) continue;
 
       return {
         medicineName: productName || brandName || "Unknown Product",
         brandName,
         genericName: genericName || productName,
-        strength: quantity,
+        strength: p.quantity || "",
         dosageForm: genericName || "",
-        manufacturer,
+        manufacturer: p.manufacturers || p.brands || "",
         classification: brandName && genericName && brandName !== genericName ? "Branded" : "Generic",
         confidence: "Medium",
         source: "Open Products Database",
@@ -133,71 +148,72 @@ async function tryOpenFoodFacts(barcode: string): Promise<MedicineData | null> {
   return null;
 }
 
-// ─── Strategy 3: Gemini AI Knowledge Lookup ───────────────────────────────────
-// Gemini has broad pharmaceutical training data and can identify medicines
-// by barcode/NDC even outside FDA — used as a fallback with "Low" confidence label
+// ─── Strategy 3: Gemini AI Knowledge Lookup (HIGH-CONFIDENCE ONLY) ────────────
+// CRITICAL: We ONLY accept the result if Gemini marks confidence as "High".
+// This prevents hallucinated/random guesses from polluting results.
+// The result is then cached so the same barcode is always answered the same way.
 async function tryGeminiKnowledge(barcode: string): Promise<MedicineData | null> {
-  const systemPrompt = `You are a pharmaceutical identification expert with access to global drug databases and training knowledge.
-A barcode has been scanned from a medicine packaging. Your task is to identify the medicine.
+  const country = getCountryHint(barcode);
 
-STRICT RULES:
-1. Use your training knowledge about global EAN barcodes, UPC codes, NDC codes, and country-specific medicine registries.
-2. Common barcodes to be aware of: South African (6009 prefix), Indian, European, etc.
-3. If you can identify the medicine with reasonable certainty from the barcode, provide structured data.
-4. If you have NO knowledge of this specific barcode, return {"identified": false}.
-5. NEVER hallucinate or guess randomly. Only return data if you are reasonably confident.
-6. Return ONLY valid JSON, no markdown.
+  const systemPrompt = `You are a pharmaceutical barcode identification system.
+A barcode number has been scanned from medicine packaging.
 
-JSON format when identified:
+CRITICAL RULES — THESE ARE NON-NEGOTIABLE:
+1. You MUST only identify the medicine if you are absolutely certain you know exactly what this specific barcode number refers to from your training data.
+2. "Reasonably confident" is NOT enough. Only return identified=true if you are CERTAIN.
+3. If there is ANY ambiguity or if you are interpolating/guessing, return {"identified": false}.
+4. Barcode numbers are arbitrary identifiers — do NOT guess a medicine name just because the country prefix suggests a pharmaceutical company.
+5. NEVER hallucinate. A wrong answer is far worse than no answer.
+6. Return ONLY valid JSON. No markdown.
+
+When you ARE certain (identified=true):
 {
   "identified": true,
-  "medicineName": "Full product name",
+  "certaintyReason": "Why you are certain (e.g., 'This barcode appears in training data as...')",
+  "medicineName": "Full product name as labeled",
   "brandName": "Brand/trade name",
-  "genericName": "INN/generic/active ingredient name",
-  "strength": "e.g. 500mg, 250mg/5ml",
-  "dosageForm": "e.g. Tablet, Capsule, Syrup",
-  "manufacturer": "Manufacturer or labeler name",
-  "classification": "Generic|Branded|Branded Generic|Unable to Verify",
-  "confidence": "Medium|Low",
-  "notes": "Brief note about the source of identification"
-}`;
+  "genericName": "INN generic / active ingredient",
+  "strength": "e.g. 500mg",
+  "dosageForm": "e.g. Tablet",
+  "manufacturer": "Manufacturer name",
+  "classification": "Generic|Branded|Branded Generic|Unable to Verify"
+}
 
-  const userPrompt = `Identify the medicine with this barcode: ${barcode}
-Country prefix hint: ${barcode.startsWith("600") ? "South Africa (600-609 prefix)" : barcode.startsWith("890") ? "India (890 prefix)" : "Unknown region"}`;
+When NOT certain:
+{"identified": false}`;
+
+  const userPrompt = `Barcode: ${barcode}
+Likely country of origin: ${country}
+Barcode length: ${barcode.length} digits (${barcode.length === 13 ? "EAN-13" : barcode.length === 12 ? "UPC-A" : barcode.length === 8 ? "EAN-8" : "Other"})
+
+Are you CERTAIN you know exactly what medicine this barcode refers to?`;
 
   try {
     const provider = getAIProvider();
     const raw = await provider.complete(systemPrompt, userPrompt);
     const parsed = JSON.parse(extractJson(raw));
 
-    if (!parsed.identified || !parsed.medicineName) return null;
+    // STRICT: only accept if identified AND has a certaintyReason (proves it's not guessing)
+    if (!parsed.identified || !parsed.medicineName || !parsed.certaintyReason) {
+      console.log(`[MedCheck] Gemini declined to identify barcode ${barcode} (not certain)`);
+      return null;
+    }
+
+    console.log(`[MedCheck] Gemini identified ${barcode}: ${parsed.medicineName} — Reason: ${parsed.certaintyReason}`);
 
     return {
-      medicineName: parsed.medicineName || "Unknown Medicine",
+      medicineName: parsed.medicineName,
       brandName: parsed.brandName || "",
       genericName: parsed.genericName || "",
       strength: parsed.strength || "",
       dosageForm: parsed.dosageForm || "",
       manufacturer: parsed.manufacturer || "",
       classification: parsed.classification || "Unable to Verify",
-      confidence: parsed.confidence || "Low",
-      source: `AI Knowledge (${parsed.notes || "training data"})`,
+      confidence: "Medium",
+      source: "AI Knowledge Base",
     };
-  } catch {
-    return null;
-  }
-}
-
-// ─── Strategy 4: RxNorm lookup by name (if we got a name from above) ─────────
-async function enrichWithRxNorm(name: string): Promise<{ rxcui?: string; tty?: string } | null> {
-  try {
-    const url = `https://rxnav.nlm.nih.gov/REST/rxcui.json?name=${encodeURIComponent(name)}&search=1`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const rxcui = data.idGroup?.rxnormId?.[0];
-    return rxcui ? { rxcui } : null;
-  } catch {
+  } catch (err) {
+    console.error("[MedCheck] Gemini lookup failed:", err);
     return null;
   }
 }
@@ -205,15 +221,13 @@ async function enrichWithRxNorm(name: string): Promise<{ rxcui?: string; tty?: s
 // ─── AI Summary Generator ─────────────────────────────────────────────────────
 async function generateAISummary(medicine: MedicineData): Promise<string> {
   const systemPrompt = `You are the MedCheck AI assistant for Farma DDI Checker.
-Summarize verified medicine data concisely.
+Summarize verified medicine data in 1-2 sentences, max 65 words.
 Rules:
-- Do NOT invent side effects, indications, or warnings not present in the data.
-- Mention the data source briefly.
-- Keep it under 65 words.
+- Only describe what is in the data. Do NOT add side effects, dosing advice, or warnings.
+- Mention the data source.
 - Return ONLY JSON: {"summary": "..."}`;
 
-  const userPrompt = `Summarize this medicine data:
-${JSON.stringify(medicine, null, 2)}`;
+  const userPrompt = `Summarize:\n${JSON.stringify(medicine, null, 2)}`;
 
   try {
     const provider = getAIProvider();
@@ -221,7 +235,14 @@ ${JSON.stringify(medicine, null, 2)}`;
     const parsed = JSON.parse(extractJson(raw));
     return parsed.summary || "";
   } catch {
-    return `${medicine.medicineName} identified via ${medicine.source || "database lookup"}. ${medicine.strength ? `Strength: ${medicine.strength}.` : ""} ${medicine.manufacturer ? `Made by ${medicine.manufacturer}.` : ""}`.trim();
+    const parts = [
+      medicine.medicineName,
+      medicine.strength ? `(${medicine.strength})` : "",
+      medicine.dosageForm ? `— ${medicine.dosageForm}` : "",
+      medicine.manufacturer ? `by ${medicine.manufacturer}.` : ".",
+      medicine.source ? `Identified via ${medicine.source}.` : "",
+    ];
+    return parts.filter(Boolean).join(" ").trim();
   }
 }
 
@@ -240,36 +261,50 @@ export async function POST(req: NextRequest) {
   }
 
   const barcode = cleanBarcode(parsed.data.barcode);
-  console.log(`[MedCheck] Looking up barcode: ${barcode}`);
+  console.log(`[MedCheck] Lookup: ${barcode}`);
 
-  // Run Strategy 1 and 2 concurrently for speed
+  // ── Cache check: return same result for same barcode every time ──────────────
+  if (barcodeCache.has(barcode)) {
+    const cached = barcodeCache.get(barcode)!;
+    console.log(`[MedCheck] Cache hit for ${barcode}`);
+    if ("error" in cached) {
+      return NextResponse.json(cached, { status: 404 });
+    }
+    // Re-generate summary is fine (it's fast), or we could also cache it
+    const summary = await generateAISummary(cached as MedicineData);
+    return NextResponse.json({ ...(cached as MedicineData), summary });
+  }
+
+  // ── Strategy 1 + 2: run concurrently ────────────────────────────────────────
   const [fdaResult, offResult] = await Promise.allSettled([
     tryOpenFDA(barcode),
-    tryOpenFoodFacts(barcode),
+    tryOpenProductsFacts(barcode),
   ]);
 
   let medicine: MedicineData | null =
     (fdaResult.status === "fulfilled" ? fdaResult.value : null) ||
     (offResult.status === "fulfilled" ? offResult.value : null);
 
-  // Strategy 3: Gemini AI knowledge lookup (only if databases failed)
+  // ── Strategy 3: Gemini (only if databases returned nothing) ─────────────────
   if (!medicine) {
-    console.log(`[MedCheck] Databases returned nothing, trying AI knowledge lookup...`);
+    console.log(`[MedCheck] Databases missed ${barcode}, trying Gemini knowledge...`);
     medicine = await tryGeminiKnowledge(barcode);
   }
 
-  // All strategies failed
+  // ── All failed ───────────────────────────────────────────────────────────────
   if (!medicine) {
-    return NextResponse.json(
-      {
-        error: `This barcode (${barcode}) could not be matched in any of our databases (openFDA, international product databases, or AI knowledge base). The product may be region-specific, unlisted, or the barcode may be unreadable. Please try again with a clearer image.`,
-        confidence: "Unable to Verify",
-      },
-      { status: 404 }
-    );
+    const errorResponse = {
+      error: `Barcode ${barcode} could not be matched in openFDA, international product databases, or AI knowledge base. The product may be region-specific, not yet indexed, or the image may need better lighting/angle.`,
+      confidence: "Unable to Verify",
+    };
+    barcodeCache.set(barcode, errorResponse); // cache the failure too
+    return NextResponse.json(errorResponse, { status: 404 });
   }
 
-  // Generate AI summary
+  // ── Cache the successful result ──────────────────────────────────────────────
+  barcodeCache.set(barcode, medicine);
+
+  // ── Generate AI summary ──────────────────────────────────────────────────────
   const summary = await generateAISummary(medicine);
 
   return NextResponse.json({ ...medicine, summary });
