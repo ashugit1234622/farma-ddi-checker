@@ -467,6 +467,7 @@ function DrugSearchBox({ id, label, drug, onSelect, onClear, accentColor }: {
 import ScrollIntro from '../components/ScrollIntro';
 import AnalysisScanner from '../components/AnalysisScanner';
 import PrintSummary from '../components/PrintSummary';
+import AasthaChat from '../components/AasthaChat';
 
 /* ══════════════════════════════════════════════════════
    MAIN PAGE
@@ -872,6 +873,7 @@ export default function Home() {
       )}
     </div>
     <PrintSummary report={report} drug1={drug1} drug2={drug2} />
+    <AasthaChat isAnalyzing={analyzing} drug1={drug1} drug2={drug2} report={report} />
     </>
   );
 }

@@ -126,3 +126,14 @@ export const ConstrainedAnswerSchema = z.object({
   answer: z.string(),
   sourceIds: z.array(z.string()),
 });
+
+export const AasthaResponseSchema = z.object({
+  answer: z.string(),
+  confidence: z.enum(['high', 'moderate', 'limited', 'insufficient']),
+  basedOnReport: z.boolean(),
+  sourceIds: z.array(z.string()),
+  limitation: z.string().nullable()
+});
+
+export type AasthaResponse = z.infer<typeof AasthaResponseSchema>;
+

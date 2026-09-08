@@ -710,3 +710,11 @@ a:hover { color: var(--accent-hover); }
   margin-right: 0.35rem;
   margin-top: -0.1rem;
 }
+@keyframes rotate-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.rotating-icon {
+  animation: rotate-spin 2s linear infinite;
+}
