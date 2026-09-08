@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './medcheck.css';
 
 export const metadata: Metadata = {
   title: 'Farma DDI Checker | AI-Powered Drug Interaction Analysis',
@@ -7,6 +8,7 @@ export const metadata: Metadata = {
 };
 
 import CinematicIntro from '@/components/CinematicIntro';
+import Header from '@/components/Header';
 
 export default function RootLayout({
   children,
@@ -17,16 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <CinematicIntro />
-        <header className="header">
-          <div className="logo">
-            <span>💊 Farma</span> DDI Checker
-          </div>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', padding: '0.3rem 0.7rem', background: 'var(--bg-hover)', borderRadius: '6px' }}>
-              Powered by Gemini AI
-            </span>
-          </nav>
-        </header>
+        <Header />
         <main className="container">
           {children}
         </main>
