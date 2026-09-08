@@ -1033,7 +1033,7 @@ a:hover { color: var(--accent-hover); }
 .anatomy-popover.active {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
-  pointer-events: auto;
+  pointer-events: none; /* Fixed: Don't intercept mouse events to prevent hover flickering */
 }
 
 .anatomy-popover-content {

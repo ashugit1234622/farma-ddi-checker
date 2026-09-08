@@ -136,26 +136,21 @@ export default function OrganToxicityAnatomy({ report, drug1Name, drug2Name }: P
       <div className="anatomy-title">Anatomical Risk</div>
       <div className="anatomy-svg-wrapper">
         <svg 
-          viewBox="0 0 400 600" 
+          viewBox="0 0 400 500" 
           className="anatomy-svg" 
           role="img" 
           aria-label="Human anatomy highlighting affected organs"
         >
-          {/* BODY OUTLINE (Subtle) */}
-          <g id="body-outline" opacity="0.15">
-            <path d="M200 40 C 230 40, 250 60, 250 90 C 250 120, 225 130, 235 150 C 265 160, 310 180, 310 220 L 300 350 C 295 400, 270 420, 260 450 L 260 550 C 260 580, 230 580, 220 550 L 210 400 L 190 400 L 180 550 C 170 580, 140 580, 140 550 L 140 450 C 130 420, 105 400, 100 350 L 90 220 C 90 180, 135 160, 165 150 C 175 130, 150 120, 150 90 C 150 60, 170 40, 200 40 Z" fill="none" stroke="var(--text-main)" strokeWidth="4" />
-          </g>
-
-          {/* LUNGS (Background/Neutral) */}
-          <g id="lungs" opacity="0.1">
-            <path d="M 160 180 C 130 190, 140 250, 145 280 C 150 310, 180 300, 190 290 C 195 285, 185 240, 160 180 Z" fill="var(--text-main)" />
-            <path d="M 240 180 C 270 190, 260 250, 255 280 C 250 310, 220 300, 210 290 C 205 285, 215 240, 240 180 Z" fill="var(--text-main)" />
-          </g>
-
-          {/* STOMACH & INTESTINES (Background/Neutral) */}
-          <g id="digestive-bg" opacity="0.1">
-            <path d="M 210 280 C 250 280, 260 300, 250 330 C 240 350, 200 350, 180 340 C 160 330, 170 280, 210 280 Z" fill="var(--text-main)" />
-            <path d="M 160 360 C 200 350, 240 350, 260 390 C 280 430, 240 460, 200 460 C 150 460, 130 420, 160 360 Z" fill="var(--text-main)" />
+          {/* BODY OUTLINE (Clean Mannequin) */}
+          <g id="body-outline" opacity="0.2">
+            {/* Head */}
+            <circle cx="200" cy="80" r="45" fill="none" stroke="var(--text-main)" strokeWidth="3" />
+            {/* Shoulders and Torso */}
+            <path d="M 120 180 C 120 140, 280 140, 280 180 L 280 380 C 280 430, 120 430, 120 380 Z" fill="none" stroke="var(--text-main)" strokeWidth="3" strokeLinejoin="round" />
+            {/* Arms implied by outer line */}
+            <path d="M 120 180 C 90 190, 80 250, 80 320 C 80 350, 100 350, 100 320 L 110 240 M 280 180 C 310 190, 320 250, 320 320 C 320 350, 300 350, 300 320 L 290 240" fill="none" stroke="var(--text-main)" strokeWidth="3" strokeLinecap="round" />
+            {/* Legs implied */}
+            <path d="M 160 420 L 160 480 C 160 500, 180 500, 180 480 L 180 420 M 240 420 L 240 480 C 240 500, 220 500, 220 480 L 220 420" fill="none" stroke="var(--text-main)" strokeWidth="3" strokeLinecap="round" />
           </g>
 
           {/* ── INTERACTIVE ORGANS ── */}
@@ -169,8 +164,8 @@ export default function OrganToxicityAnatomy({ report, drug1Name, drug2Name }: P
             onMouseLeave={handleMouseLeave}
             onClick={() => handleMouseEnter('neuro')}
           >
-            <path d="M 200 55 C 225 55, 235 70, 235 90 C 235 110, 215 115, 200 120 C 185 115, 165 110, 165 90 C 165 70, 175 55, 200 55 Z" />
-            <circle cx="200" cy="85" r="45" fill="transparent" />
+            <path d="M 170 80 C 170 50, 230 50, 230 80 C 230 105, 170 105, 170 80 Z" />
+            <circle cx="200" cy="80" r="35" fill="transparent" />
           </g>
 
           {/* HEART (cardiac) */}
@@ -182,11 +177,11 @@ export default function OrganToxicityAnatomy({ report, drug1Name, drug2Name }: P
             onMouseLeave={handleMouseLeave}
             onClick={() => handleMouseEnter('cardiac')}
           >
-            <path d="M 210 220 C 230 210, 245 230, 225 250 L 200 275 L 185 245 C 175 225, 195 210, 210 220 Z" />
-            <circle cx="210" cy="240" r="40" fill="transparent" />
+            <path d="M 200 230 C 200 230, 165 190, 165 170 C 165 150, 195 150, 200 170 C 205 150, 235 150, 235 170 C 235 190, 200 230, 200 230 Z" />
+            <circle cx="200" cy="190" r="40" fill="transparent" />
           </g>
 
-          {/* LIVER (hepatic) */}
+          {/* LIVER (hepatic) - Viewer's left */}
           <g 
             id="organ-hepatic" 
             className={getOrganClass('hepatic')} 
@@ -195,11 +190,11 @@ export default function OrganToxicityAnatomy({ report, drug1Name, drug2Name }: P
             onMouseLeave={handleMouseLeave}
             onClick={() => handleMouseEnter('hepatic')}
           >
-            <path d="M 160 285 C 190 275, 230 280, 245 300 C 255 315, 240 335, 220 330 C 190 320, 155 310, 160 285 Z" />
-            <ellipse cx="205" cy="305" rx="55" ry="35" fill="transparent" />
+            <path d="M 130 280 C 130 240, 240 245, 235 285 C 230 310, 160 310, 130 280 Z" />
+            <ellipse cx="180" cy="280" rx="60" ry="35" fill="transparent" />
           </g>
 
-          {/* KIDNEYS (renal) */}
+          {/* KIDNEYS (renal) - Symmetrical */}
           <g 
             id="organ-renal" 
             className={getOrganClass('renal')} 
@@ -208,12 +203,14 @@ export default function OrganToxicityAnatomy({ report, drug1Name, drug2Name }: P
             onMouseLeave={handleMouseLeave}
             onClick={() => handleMouseEnter('renal')}
           >
-            <path d="M 175 320 C 165 315, 155 330, 165 345 C 175 355, 185 340, 175 320 Z" />
-            <path d="M 225 320 C 235 315, 245 330, 235 345 C 225 355, 215 340, 225 320 Z" />
-            <rect x="145" y="300" width="110" height="65" fill="transparent" />
+            {/* Left Kidney */}
+            <path d="M 160 320 C 140 310, 130 350, 150 360 C 170 370, 170 330, 160 320 Z" />
+            {/* Right Kidney */}
+            <path d="M 240 320 C 260 310, 270 350, 250 360 C 230 370, 230 330, 240 320 Z" />
+            <rect x="120" y="300" width="160" height="80" fill="transparent" />
           </g>
 
-          {/* SPLEEN/BLOOD (hemato) */}
+          {/* SPLEEN/BLOOD (hemato) - Viewer's right */}
           <g 
             id="organ-hemato" 
             className={getOrganClass('hemato')} 
@@ -222,8 +219,8 @@ export default function OrganToxicityAnatomy({ report, drug1Name, drug2Name }: P
             onMouseLeave={handleMouseLeave}
             onClick={() => handleMouseEnter('hemato')}
           >
-            <path d="M 245 285 C 255 280, 265 290, 260 305 C 255 315, 245 310, 245 285 Z" />
-            <circle cx="255" cy="295" r="30" fill="transparent" />
+            <ellipse cx="250" cy="275" rx="15" ry="25" transform="rotate(25 250 275)" />
+            <circle cx="250" cy="275" r="30" fill="transparent" />
           </g>
 
         </svg>
