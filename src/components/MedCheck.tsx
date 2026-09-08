@@ -104,7 +104,7 @@ export default function MedCheck({ onClose }: { onClose: () => void }) {
         handleBarcodeDetected(decodedText);
       } catch (err) {
         setScanState('error');
-        setErrorMsg("Could not detect a barcode in the image. Please try a clearer picture.");
+        setErrorMsg("Could not detect a barcode in the image. Please try a clearer picture with better lighting.");
       }
     }
   };
