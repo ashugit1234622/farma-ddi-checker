@@ -941,6 +941,253 @@ a:hover { color: var(--accent-hover); }
 }
 
 /* ══════════════════════════════════════════════════════
+   AASTHA VOICE MODE
+══════════════════════════════════════════════════════ */
+
+/* Voice button beside Send */
+.aastha-voice-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(0, 200, 255, 0.3);
+  background: rgba(0, 200, 255, 0.08);
+  color: rgba(0, 200, 255, 0.85);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.18s, border-color 0.18s, transform 0.15s, box-shadow 0.18s;
+}
+.aastha-voice-btn:hover:not(:disabled) {
+  background: rgba(0, 200, 255, 0.18);
+  border-color: rgba(0, 200, 255, 0.6);
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.25);
+  transform: scale(1.06);
+}
+.aastha-voice-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Language badge in header */
+.aastha-voice-lang-badge {
+  font-size: 0.7rem;
+  color: rgba(0, 200, 255, 0.8);
+  background: rgba(0, 200, 255, 0.1);
+  border: 1px solid rgba(0, 200, 255, 0.2);
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+/* Change language button */
+.aastha-voice-change-lang {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.aastha-voice-change-lang:hover {
+  background: rgba(255,255,255,0.08);
+  color: white;
+}
+
+/* Main voice container */
+.aastha-voice-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Language Selection ── */
+.aastha-lang-select {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1rem;
+  gap: 0.75rem;
+  overflow-y: auto;
+}
+.aastha-lang-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.aastha-lang-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.aastha-lang-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 280px;
+}
+.aastha-lang-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.65rem 0.5rem;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: white;
+  cursor: pointer;
+  gap: 2px;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.aastha-lang-btn:hover {
+  background: rgba(0, 200, 255, 0.1);
+  border-color: rgba(0, 200, 255, 0.4);
+  transform: translateY(-1px);
+}
+.lang-native {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.lang-en {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ── Orbital Animation Area ── */
+.aastha-voice-orbital-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  gap: 0.5rem;
+  overflow-y: auto;
+}
+.aastha-voice-last-response {
+  width: 100%;
+  max-height: 100px;
+  overflow-y: auto;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+}
+.aastha-orbital-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 220px;
+  flex-shrink: 0;
+}
+.aastha-orbital-wrap canvas {
+  width: 220px !important;
+  height: 220px !important;
+}
+.aastha-voice-state-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(0, 200, 255, 0.9);
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.aastha-voice-error-inline {
+  font-size: 0.78rem;
+  color: rgba(255, 100, 100, 0.85);
+  text-align: center;
+  max-width: 220px;
+}
+
+/* ── Centered Status ── */
+.aastha-voice-status-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+.aastha-voice-permission-icon,
+.aastha-voice-error-icon {
+  font-size: 2rem;
+}
+.aastha-voice-status-text {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  max-width: 240px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Voice Action Buttons ── */
+.aastha-voice-exit-btn {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+}
+.aastha-voice-exit-btn:hover {
+  color: white;
+  background: rgba(255,255,255,0.06);
+}
+.aastha-voice-retry-btn {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: white;
+  background: rgba(0, 200, 255, 0.15);
+  border: 1.5px solid rgba(0, 200, 255, 0.35);
+  border-radius: 10px;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.aastha-voice-retry-btn:hover {
+  background: rgba(0, 200, 255, 0.25);
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.2);
+}
+
+@media (max-width: 600px) {
+  .aastha-orbital-wrap,
+  .aastha-orbital-wrap canvas {
+    width: 180px !important;
+    height: 180px !important;
+  }
+  .aastha-lang-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+  }
+  .aastha-voice-last-response {
+    max-height: 70px;
+    font-size: 0.78rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
    ORGAN TOXICITY ANATOMY
 ══════════════════════════════════════════════════════ */
 .anatomy-container {
