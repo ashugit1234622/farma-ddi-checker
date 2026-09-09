@@ -69,12 +69,15 @@ export class GeminiProvider implements AIProvider {
   async complete(system: string, user: string, useSearch: boolean = false): Promise<string> {
     const config: any = {
       systemInstruction: system,
-      responseMimeType: "application/json",
       temperature: 0,
     };
 
     if (useSearch) {
+      // Google Search Grounding is incompatible with responseMimeType: "application/json"
+      // The model needs to return grounded text which we'll parse ourselves
       config.tools = [{ googleSearch: {} }];
+    } else {
+      config.responseMimeType = "application/json";
     }
 
     const response = await this.ai.models.generateContent({

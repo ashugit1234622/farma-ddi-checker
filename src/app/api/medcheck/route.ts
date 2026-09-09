@@ -202,7 +202,7 @@ async function tryOpenProductsFacts(barcode: string): Promise<MedicineData | nul
       const brand = p.brands || "";
       const generic = p.generic_name_en || p.generic_name || "";
       if (!name && !brand) continue;
-      if (!isMedicineProduct(`${name} ${generic}`, p.categories_tags || [])) continue;
+      // Accept any product found — the barcode was on a medicine box so trust the scan
       const cls = brand && generic && brand.toLowerCase() !== generic.toLowerCase() ? "Branded" : "Generic";
       return buildMedicineData(name || brand, brand, generic || name,
         p.quantity || "", generic || "", p.manufacturers || brand, cls, "High", "Open Products Database");
@@ -230,7 +230,93 @@ async function tryRxNorm(barcode: string): Promise<MedicineData | null> {
   }
 }
 
-// ─── DB 5: openFDA label search by generic name (name-based lookup) ───────────
+// ─── DB 5: Barcode List (barcode-list.com — global crowdsourced barcode DB) ────
+// This is the #1 hit on Google for many international barcodes.
+// We scrape the HTML meta tags to extract the product name.
+async function tryBarcodeList(barcode: string): Promise<MedicineData | null> {
+  if (!/^\d{6,14}$/.test(barcode)) return null;
+  try {
+    const url = `https://barcode-list.com/barcode/EN/Search.htm?barcode=${barcode}`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+
+    // Extract from meta description: "Barcode:XXX - This code meet the following products: PRODUCT NAME"
+    const metaDesc = html.match(/<meta[^>]+name="description"[^>]+content="([^"]+)"/i)?.[1]
+      || html.match(/<meta[^>]+content="([^"]+)"[^>]+name="description"/i)?.[1];
+    
+    // Extract from title: "PRODUCT NAME - Barcode: XXX"
+    const titleMatch = html.match(/<title>([^<]+)<\/title>/i)?.[1];
+    
+    let productName = "";
+    
+    // Parse meta description first (more reliable)
+    if (metaDesc) {
+      const prodMatch = metaDesc.match(/products?:\s*(.+?)(?:;|$)/i);
+      if (prodMatch) productName = prodMatch[1].trim();
+    }
+    
+    // Fallback to title
+    if (!productName && titleMatch) {
+      productName = titleMatch.replace(/\s*-\s*Barcode:.*$/i, "").trim();
+    }
+    
+    if (!productName || productName.length < 3) return null;
+    
+    // Parse the product name to extract brand, generic, strength, dosage form
+    // Common format: "AUSTELL PARACETAMOL 10 TAB" or "PANADO PARACETAMOL 500MG TABLETS"
+    const tokens = productName.split(/\s+/);
+    let brand = "";
+    let generic = "";
+    let strength = "";
+    let dosageForm = "";
+    
+    const dosageForms = ["TAB", "TABS", "TABLET", "TABLETS", "CAP", "CAPS", "CAPSULE", "CAPSULES",
+      "SYR", "SYRUP", "INJ", "INJECTION", "CREAM", "OINTMENT", "GEL", "DROPS",
+      "SUSP", "SUSPENSION", "SOL", "SOLUTION", "INHALER", "PATCH"];
+    const strengthPattern = /^\d+(\.\d+)?\s*(mg|ml|mcg|g|iu|%)/i;
+    
+    for (const token of tokens) {
+      const upper = token.toUpperCase();
+      if (dosageForms.includes(upper)) {
+        dosageForm = upper.charAt(0) + upper.slice(1).toLowerCase();
+        if (dosageForm === "Tab" || dosageForm === "Tabs") dosageForm = "Tablet";
+        if (dosageForm === "Cap" || dosageForm === "Caps") dosageForm = "Capsule";
+        if (dosageForm === "Syr") dosageForm = "Syrup";
+        if (dosageForm === "Inj") dosageForm = "Injection";
+        if (dosageForm === "Susp") dosageForm = "Suspension";
+        if (dosageForm === "Sol") dosageForm = "Solution";
+      } else if (strengthPattern.test(token) || /^\d+$/.test(token)) {
+        strength = strength ? `${strength} ${token}` : token;
+      } else if (MED_KEYWORDS.some(k => token.toLowerCase().includes(k))) {
+        generic = generic ? `${generic} ${token}` : token;
+      } else if (!brand || brand.length < token.length) {
+        // First unknown token = brand, subsequent = extend brand
+        if (!generic) brand = brand ? `${brand} ${token}` : token;
+      }
+    }
+    
+    // If we found a known drug name in the product, use it as generic
+    if (!generic) generic = productName;
+    if (!brand) brand = tokens[0] || productName;
+    
+    const classification = brand && generic && brand.toLowerCase() !== generic.toLowerCase()
+      ? "Branded" : "Generic";
+    
+    return buildMedicineData(
+      productName, brand, generic, strength, dosageForm,
+      "", classification, "High", "Barcode List (barcode-list.com)"
+    );
+  } catch (err) {
+    console.error("[MedCheck] barcode-list.com scrape failed:", err);
+    return null;
+  }
+}
+
+// ─── DB 6: openFDA label search by generic name (name-based lookup) ───────────
 // Used when we have a product name from a QR URL fetch but no barcode hit.
 async function tryOpenFDAByName(name: string): Promise<MedicineData | null> {
   if (!name || name.length < 3) return null;
@@ -456,21 +542,23 @@ async function lookupMedicine(candidates: string[], isUrl: boolean, rawScan: str
     if (medicine && medicine.confidence !== "Low") return medicine;
   }
 
-  // Phase 2: Run all numeric barcode candidates through all databases concurrently
+  // Phase 2: Run all numeric barcode candidates through ALL databases concurrently
   for (const candidate of candidates) {
     console.log(`[MedCheck] Trying candidate: "${candidate}"`);
-    const [fda, daily, off, rxn] = await Promise.allSettled([
+    const [fda, daily, off, rxn, bcl] = await Promise.allSettled([
       tryOpenFDA(candidate),
       tryDailyMed(candidate),
       tryOpenProductsFacts(candidate),
       tryRxNorm(candidate),
+      tryBarcodeList(candidate),
     ]);
 
     const result =
       (fda.status === "fulfilled" ? fda.value : null) ||
       (daily.status === "fulfilled" ? daily.value : null) ||
       (off.status === "fulfilled" ? off.value : null) ||
-      (rxn.status === "fulfilled" ? rxn.value : null);
+      (rxn.status === "fulfilled" ? rxn.value : null) ||
+      (bcl.status === "fulfilled" ? bcl.value : null);
 
     if (result) return result;
   }
