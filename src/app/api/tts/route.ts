@@ -54,16 +54,11 @@ export async function POST(req: NextRequest) {
   const { text, voice } = parsed.data;
 
   try {
-    // Use Node.js built-in WebSocket (available in Next.js 14 / Node 21+)
-    // Fallback: use the 'ws' package if native WebSocket isn't available
-    let WSClass: typeof WebSocket;
-    try {
-      WSClass = WebSocket as unknown as typeof WebSocket;
-      if (!WSClass) throw new Error("No native WS");
-    } catch {
-      const { default: WS } = await import("ws" as any);
-      WSClass = WS as unknown as typeof WebSocket;
-    }
+    // We MUST use the `ws` package because native WebSockets (even in Node 21+)
+    // do not support setting custom headers in the constructor. Edge TTS requires
+    // specific Origin and User-Agent headers or it will instantly reject the connection.
+    const { default: WS } = await import("ws");
+    const WSClass = WS as unknown as typeof WebSocket;
 
     const connId = makeConnectionId();
     const reqId = makeRequestId();
