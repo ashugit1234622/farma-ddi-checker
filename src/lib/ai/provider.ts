@@ -3,7 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 
 export interface AIProvider {
   /** Sends a system + user prompt pair, expects back a raw JSON string. */
-  complete(system: string, user: string): Promise<string>;
+  complete(system: string, user: string, useSearch?: boolean): Promise<string>;
   readonly modelId: string;
 }
 
@@ -27,7 +27,7 @@ export class GroqProvider implements AIProvider {
     this.modelId = process.env.AI_MODEL || "llama-3.1-8b-instant";
   }
 
-  async complete(system: string, user: string): Promise<string> {
+  async complete(system: string, user: string, useSearch?: boolean): Promise<string> {
     const response = await this.client.chat.completions.create({
       model: this.modelId,
       messages: [
@@ -66,15 +66,21 @@ export class GeminiProvider implements AIProvider {
     this.modelId = `${modelName} (${envVarName})`;
   }
 
-  async complete(system: string, user: string): Promise<string> {
+  async complete(system: string, user: string, useSearch: boolean = false): Promise<string> {
+    const config: any = {
+      systemInstruction: system,
+      responseMimeType: "application/json",
+      temperature: 0,
+    };
+
+    if (useSearch) {
+      config.tools = [{ googleSearch: {} }];
+    }
+
     const response = await this.ai.models.generateContent({
       model: this.modelName,
       contents: user,
-      config: {
-        systemInstruction: system,
-        responseMimeType: "application/json",
-        temperature: 0,
-      }
+      config
     });
 
     if (!response.text) {
@@ -106,15 +112,15 @@ export class FallbackProvider implements AIProvider {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async complete(system: string, user: string): Promise<string> {
+  async complete(system: string, user: string, useSearch: boolean = false): Promise<string> {
     const allErrors: string[] = [];
     
     for (const provider of this.providers) {
       let retries = 2; // Try up to 3 times per provider
       while (retries >= 0) {
         try {
-          console.log(`[AI] Attempting generation with ${provider.modelId}...`);
-          const result = await provider.complete(system, user);
+          console.log(`[AI] Attempting generation with ${provider.modelId}... (Search: ${useSearch})`);
+          const result = await provider.complete(system, user, useSearch);
           console.log(`[AI] Success with ${provider.modelId}`);
           return result;
         } catch (err: any) {

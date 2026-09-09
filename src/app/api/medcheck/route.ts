@@ -394,6 +394,56 @@ not in the data. End with the data source. Return ONLY JSON: {"summary": "..."}`
   }
 }
 
+// ─── AI Search Grounding (Phase 5 Fallback) ───────────────────────────────────
+// Uses Gemini with Google Search Grounding to search the live web for the barcode.
+// This prevents hallucinations while finding obscure international/regional drugs.
+async function tryAISearchGrounding(rawScan: string, productNameHint?: string): Promise<MedicineData | null> {
+  const query = productNameHint 
+    ? `Look up the medicine "${productNameHint}" (barcode/QR: ${rawScan}) on the web.` 
+    : `Look up medicine barcode ${rawScan} on the web.`;
+
+  const system = `You are a medical data extraction API.
+You MUST search the web to find the medicine corresponding to the user's query.
+If you CANNOT find credible evidence of the medicine on the web, you MUST return {"identified": false}.
+Do NOT guess or hallucinate.
+
+Return ONLY JSON:
+{
+  "identified": true,
+  "medicineName": "Full product name",
+  "brandName": "Brand name if any",
+  "genericName": "Active ingredient",
+  "strength": "e.g., 500mg",
+  "dosageForm": "e.g., Tablet",
+  "manufacturer": "Company name",
+  "classification": "Generic|Branded|Unable to Verify",
+  "source": "Web Search (include domain name)"
+}`;
+
+  try {
+    const provider = getAIProvider();
+    const raw = await provider.complete(system, query, true); // true = useSearch
+    const parsed = JSON.parse(extractJson(raw));
+    
+    if (!parsed.identified || !parsed.medicineName) return null;
+    
+    return buildMedicineData(
+      parsed.medicineName,
+      parsed.brandName || "",
+      parsed.genericName || "",
+      parsed.strength || "",
+      parsed.dosageForm || "",
+      parsed.manufacturer || "",
+      parsed.classification || "Unable to Verify",
+      "Medium",
+      parsed.source || "AI Web Search"
+    );
+  } catch (err) {
+    console.error("[MedCheck] AI Search Grounding failed:", err);
+    return null;
+  }
+}
+
 // ─── Main Lookup Orchestrator ─────────────────────────────────────────────────
 async function lookupMedicine(candidates: string[], isUrl: boolean, rawScan: string): Promise<MedicineData | null> {
 
@@ -436,9 +486,16 @@ async function lookupMedicine(candidates: string[], isUrl: boolean, rawScan: str
       (byFDA.status === "fulfilled" ? byFDA.value : null) ||
       (byRx.status === "fulfilled" ? byRx.value : null);
     if (nameResult) return nameResult;
+  }
 
-    // Phase 4: If name search found nothing, return the QR page data we already have (Low confidence)
-    // This ensures QR codes that point to brand auth pages still show something useful
+  // Phase 4: AI Web Search Grounding (Live Internet Search)
+  // If databases don't have it, we search the live web.
+  console.log(`[MedCheck] Databases failed, trying AI Web Search for: "${rawScan}"`);
+  const aiSearchResult = await tryAISearchGrounding(rawScan, productNameFromQR);
+  if (aiSearchResult) return aiSearchResult;
+
+  // Phase 5: QR Page Data Fallback (Last Resort)
+  if (productNameFromQR) {
     const { medicine: qrMed } = await fetchQRUrl(rawScan);
     if (qrMed) return qrMed;
   }
