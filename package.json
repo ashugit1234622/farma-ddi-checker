@@ -20,6 +20,7 @@
     "@types/node": "^26.4.0",
     "@types/react": "^19.2.18",
     "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
     "better-sqlite3": "^13.0.3",
     "dotenv": "^17.4.2",
     "edge-tts": "^1.0.1",
@@ -35,8 +36,5 @@
     "uuid": "^14.0.2",
     "ws": "^8.21.3",
     "zod": "^4.5.2"
-  },
-  "devDependencies": {
-    "@types/ws": "^8.18.1"
   }
 }
