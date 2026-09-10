@@ -134,9 +134,6 @@ export default function AasthaChat({ isAnalyzing, drug1, drug2, report }: Aastha
 
   // Refs for cleanup
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number>(0);
   const isSpeakingRef = useRef(false);
 
@@ -162,21 +159,21 @@ export default function AasthaChat({ isAnalyzing, drug1, drug2, report }: Aastha
       try { recognitionRef.current.abort(); } catch {}
       recognitionRef.current = null;
     }
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      audioRef.current = null;
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
     }
-    if (audioCtxRef.current) {
-      audioCtxRef.current.close().catch(() => {});
-      audioCtxRef.current = null;
-    }
-    analyserRef.current = null;
     isSpeakingRef.current = false;
     setSpeakingAmplitude(0);
   }, []);
 
   useEffect(() => {
+    // Preload voices if available
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
     return () => cleanupVoice();
   }, [cleanupVoice]);
 
@@ -279,73 +276,85 @@ export default function AasthaChat({ isAnalyzing, drug1, drug2, report }: Aastha
   // VOICE: EDGE TTS PLAYBACK
   // ─────────────────────────────────────────────────────────────────────────
   const speakText = useCallback(async (text: string, lang: LanguageOption) => {
+    if (!('speechSynthesis' in window)) {
+      setVoiceError('Voice playback unavailable in this browser. You can still read the response.');
+      setTimeout(() => setVoiceError(''), 3000);
+      return;
+    }
+
     setVoiceMode('speaking');
     isSpeakingRef.current = true;
 
-    try {
-      const res = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice: lang.voice })
-      });
-
-      if (!res.ok) throw new Error('TTS failed');
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-
-      const audio = new Audio(url);
-      audioRef.current = audio;
-
-      // Web Audio API for amplitude (drives orbital animation)
-      try {
-        const audioCtx = new AudioContext();
-        audioCtxRef.current = audioCtx;
-        const source = audioCtx.createMediaElementSource(audio);
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        analyserRef.current = analyser;
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-
-        const trackAmplitude = () => {
-          if (!analyserRef.current || !isSpeakingRef.current) return;
-          const data = new Uint8Array(analyserRef.current.frequencyBinCount);
-          analyserRef.current.getByteFrequencyData(data);
-          const avg = data.reduce((s, v) => s + v, 0) / data.length;
-          setSpeakingAmplitude(Math.min(avg / 128, 1));
-          animFrameRef.current = requestAnimationFrame(trackAmplitude);
-        };
-        trackAmplitude();
-      } catch {
-        // Audio analysis optional — doesn't break playback
+    // Simulate amplitude for orbital animation
+    const simulateAmplitude = () => {
+      if (!isSpeakingRef.current) {
+        setSpeakingAmplitude(0);
+        return;
       }
-
-      await new Promise<void>((resolve) => {
-        audio.onended = () => resolve();
-        audio.onerror = () => resolve();
-        audio.play().catch(() => resolve());
+      setSpeakingAmplitude(0.15 + Math.random() * 0.4); // Pulse effect
+      animFrameRef.current = requestAnimationFrame(() => {
+        setTimeout(simulateAmplitude, 100);
       });
+    };
+    simulateAmplitude();
 
-      URL.revokeObjectURL(url);
-    } catch {
-      // TTS failed — keep the text response visible, return to listening
-      setVoiceError('Voice playback unavailable. You can still read the response above.');
-      setTimeout(() => setVoiceError(''), 3000);
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Voice matching logic
+    const voices = window.speechSynthesis.getVoices();
+    let selectedVoice = voices.find(v => v.lang.replace('_', '-') === lang.code);
+    if (!selectedVoice) {
+      // Fallback to language family (e.g., 'hi' for 'hi-IN')
+      const langFamily = lang.code.split('-')[0];
+      selectedVoice = voices.find(v => v.lang.startsWith(langFamily));
+    }
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    } else {
+      utterance.lang = lang.code; // Let browser try to match by lang property
     }
 
-    // Done speaking — back to listening
-    isSpeakingRef.current = false;
-    cancelAnimationFrame(animFrameRef.current);
-    setSpeakingAmplitude(0);
+    return new Promise<void>((resolve) => {
+      utterance.onend = () => {
+        isSpeakingRef.current = false;
+        cancelAnimationFrame(animFrameRef.current);
+        setSpeakingAmplitude(0);
+        
+        // Return to listening mode if we are still active
+        setVoiceMode(currentMode => {
+          if (currentMode !== 'off' && currentMode !== 'error') {
+             const currentLang = sessionLangRef.current;
+             if (currentLang) {
+                // Must start listening asynchronously after state update
+                setTimeout(() => startListening(currentLang), 50);
+                return 'listening';
+             }
+          }
+          return currentMode;
+        });
+        resolve();
+      };
 
-    if (voiceMode !== 'off') {
-      setVoiceMode('listening');
-      const lang = sessionLangRef.current;
-      if (lang) startListening(lang);
-    }
+      utterance.onerror = (e) => {
+        if (e.error !== 'canceled' && e.error !== 'interrupted') {
+          console.error('[TTS] SpeechSynthesis error:', e);
+          setVoiceError('Voice playback interrupted.');
+          setTimeout(() => setVoiceError(''), 3000);
+        }
+        isSpeakingRef.current = false;
+        cancelAnimationFrame(animFrameRef.current);
+        setSpeakingAmplitude(0);
+        // Do not auto-restart listening on error to avoid loops
+        resolve();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [voiceMode]);
+  }, []);
 
   // ─────────────────────────────────────────────────────────────────────────
   // VOICE: SPEECH RECOGNITION
