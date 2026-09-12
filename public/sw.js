@@ -1,8 +1,8 @@
 // Farma DDI Checker - Service Worker
 // Strategy: Network-first for API calls, Cache-first for static assets
 
-const CACHE_NAME = 'farma-ddi-v1';
-const STATIC_CACHE = 'farma-static-v1';
+const CACHE_NAME = 'farma-ddi-v2';
+const STATIC_CACHE = 'farma-static-v2';
 
 // Assets to pre-cache on install
 const PRECACHE_ASSETS = [
@@ -50,9 +50,10 @@ self.addEventListener('fetch', (event) => {
   // Skip cross-origin requests
   if (url.origin !== self.location.origin) return;
 
-  // Network-only for API routes
+  // API routes and Next build assets must always come from the network. Caching
+  // hashed CSS/JS chunks can otherwise mix an old page shell with a new build.
   const isApiCall = NETWORK_ONLY_PATTERNS.some((p) => url.pathname.startsWith(p));
-  if (isApiCall) {
+  if (isApiCall || url.pathname.startsWith('/_next/')) {
     event.respondWith(fetch(request));
     return;
   }
