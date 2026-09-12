@@ -465,16 +465,15 @@ function DrugSearchBox({ id, label, drug, onSelect, onClear, accentColor }: {
   );
 }
 
-import ScrollIntro from '../components/ScrollIntro';
 import AnalysisScanner from '../components/AnalysisScanner';
 import PrintSummary from '../components/PrintSummary';
 import AasthaChat from '../components/AasthaChat';
+import { CinematicVisualLayer } from '../components/CinematicVisualLayer';
 
 /* ══════════════════════════════════════════════════════
    MAIN PAGE
 ══════════════════════════════════════════════════════ */
 export default function Home() {
-  const [showIntro, setShowIntro] = useState(false);
   const [drug1, setDrug1] = useState<DrugSearchResult | null>(null);
   const [drug2, setDrug2] = useState<DrugSearchResult | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -484,17 +483,22 @@ export default function Home() {
   const [doseMode, setDoseMode] = useState<'normal' | 'high' | 'elderly'>('normal');
   const [activeTab, setActiveTab] = useState<'overview' | 'adme' | 'toxicity' | 'alternatives'>('overview');
   const reportRef = useRef<HTMLDivElement>(null);
+  const [isIdle, setIsIdle] = useState(false);
 
   useEffect(() => {
-    // Only run in browser
-    if (typeof window !== 'undefined') {
-      setShowIntro(true);
-    }
-  }, []);
-
-  const handleIntroComplete = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    setShowIntro(false);
+    let timer: ReturnType<typeof setTimeout>;
+    const resetIdle = () => {
+      setIsIdle(false);
+      clearTimeout(timer);
+      timer = setTimeout(() => setIsIdle(true), 10_000);
+    };
+    resetIdle();
+    const events: (keyof WindowEventMap)[] = ['mousemove', 'mousedown', 'click', 'keydown', 'touchstart', 'scroll', 'wheel'];
+    events.forEach((event) => window.addEventListener(event, resetIdle, { passive: true }));
+    return () => {
+      clearTimeout(timer);
+      events.forEach((event) => window.removeEventListener(event, resetIdle));
+    };
   }, []);
 
   // Stepper animation
@@ -569,20 +573,11 @@ export default function Home() {
   ];
 
   return (
-    <>
-      <AnalysisScanner isAnalyzing={analyzing} drug1={drug1} drug2={drug2} currentStepText={steps[stepIndex]} />
-      {showIntro && <ScrollIntro onComplete={handleIntroComplete} />}
-      
-      {/* Spacer for intro scrolling */}
-      {showIntro && <div style={{ position: 'absolute', top: 0, left: 0, width: '1px', height: '300vh' }} />}
-
-      <div className="print-hide" style={{
-        paddingBottom: '4rem',
-        // When intro is running, lock the main app in place at top 0 (but hidden) so the real inputs are positioned correctly for the morph
-        visibility: showIntro ? 'hidden' : 'visible',
-        position: showIntro ? 'fixed' : 'relative',
-        top: 0, left: 0, width: '100%', height: showIntro ? '100vh' : 'auto', overflow: showIntro ? 'hidden' : 'visible'
-      }}>
+    <div style={{ position: 'relative', minHeight: '220vh', background: '#02070B' }}>
+      <CinematicVisualLayer autoPlayAtMidpoint midpointThreshold={0.50} autoPlayDuration={10} />
+      <div style={{ position: 'relative', zIndex: 10, opacity: isIdle ? 0.35 : 1, transition: 'opacity 700ms ease-in-out' }}>
+        <AnalysisScanner isAnalyzing={analyzing} drug1={drug1} drug2={drug2} currentStepText={steps[stepIndex]} />
+        <div className="print-hide" style={{ paddingBottom: '4rem' }}>
         {/* Hero */}
         <div style={{ textAlign: 'center', marginBottom: '2.5rem', paddingTop: '1.5rem' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}><Pill size={48} style={{ color: 'var(--accent-primary)', filter: 'drop-shadow(0 0 12px var(--accent-glow))' }} /></div>
@@ -877,9 +872,10 @@ export default function Home() {
           </div>
         </div>
       )}
+        </div>
+      </div>
+      <PrintSummary report={report} drug1={drug1} drug2={drug2} />
+      <AasthaChat isAnalyzing={analyzing} drug1={drug1} drug2={drug2} report={report} />
     </div>
-    <PrintSummary report={report} drug1={drug1} drug2={drug2} />
-    <AasthaChat isAnalyzing={analyzing} drug1={drug1} drug2={drug2} report={report} />
-    </>
   );
 }
